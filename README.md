@@ -1,4 +1,4 @@
-# slq - Stockholm Local Traffic Query Tool
+# slq - Storstockholms Lokaltrafik Query
 
 A Rust CLI tool for querying [Storstockholms Lokaltrafik (SL)](https://sl.se) information.
 
@@ -65,8 +65,6 @@ cargo run --bin install -- --help
 The installer features:
 - Cross-platform compatibility
 - Auto-fallback to user directory when no root privileges
-- Better error handling and colored output
-- No external dependencies beyond Rust
 
 ### Uninstallation
 
@@ -273,12 +271,6 @@ make test-blackbox
 make test-integration
 ```
 
-#### Test Dependencies
-
-- Black-box and integration tests require the compiled binary
-- Network-dependent tests gracefully handle offline scenarios
-- Integration tests create temporary files for workflow testing
-
 ## Documentation
 
 ### Man Page
@@ -295,6 +287,3 @@ The man page includes detailed information about all commands, options, examples
 
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
 
-## Timezone
-
-All times are displayed in Europe/Stockholm timezone (local Swedish time).
