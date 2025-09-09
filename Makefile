@@ -14,15 +14,11 @@ build-release: ## Build release version
 	cargo build --release
 
 # Testing targets
-test: test-blackbox test-integration ## Run all tests
+test: test-cli ## Run all tests
 
-test-blackbox: build-release ## Run black box CLI tests
-	@echo "Running black box tests..."
-	@./scripts/test-blackbox.sh
-
-test-integration: build-release ## Run integration tests
-	@echo "Running integration tests..."
-	@./scripts/test-integration.sh
+test-cli: build-release ## Run comprehensive CLI tests
+	@echo "Running CLI tests..."
+	@./scripts/test-cli.sh
 
 # Development targets
 dev: fmt clippy test ## Run all development checks
@@ -67,8 +63,7 @@ release-check: ## Check if ready for release
 	@echo "Checking release readiness..."
 	@cargo check
 	@cargo clippy -- -D warnings
-	@./scripts/test-blackbox.sh
-	@./scripts/test-integration.sh
+	@./scripts/test-cli.sh
 	@echo "All checks passed - ready for release"
 
 
