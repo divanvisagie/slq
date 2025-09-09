@@ -1,0 +1,17 @@
+# Example .envrc file for slq development
+# Copy this to .envrc and run 'direnv allow' to automatically add ./bin to PATH
+
+# Add the local bin directory to PATH for slq development
+export PATH="$PWD/bin:$PATH"
+
+# Optional: Set environment variables for development
+export SLQ_DEV=1
+
+# Optional: Enable Rust backtrace for debugging
+export RUST_BACKTRACE=1
+
+# Optional: Set log level for more verbose output during development
+# export RUST_LOG=debug
+
+echo "slq development environment loaded"
+echo "Local slq binary (if built) is now available in PATH"

@@ -1,0 +1,21 @@
+[package]
+name = "slq"
+version = "0.1.0"
+edition = "2024"
+description = "Stockholm Local Traffic Query Tool - CLI for SL public transportation"
+license = "BSD-3-Clause"
+authors = ["Divan Visagie"]
+repository = "https://github.com/your-repo/slq"
+homepage = "https://github.com/your-repo/slq"
+documentation = "https://github.com/your-repo/slq"
+keywords = ["stockholm", "transport", "cli", "sl", "public-transport"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.8"
+urlencoding = "2.1"
