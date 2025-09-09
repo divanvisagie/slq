@@ -214,9 +214,7 @@ make quick
 # Run all tests
 make test
 
-# Development helper script
-./scripts/dev.sh help
-./scripts/dev.sh demo
+
 ```
 
 ### Testing
