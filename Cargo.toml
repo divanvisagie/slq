@@ -1,13 +1,13 @@
 [package]
 name = "slq"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Stockholm Local Traffic Query Tool - CLI for SL public transportation"
 license = "BSD-3-Clause"
 authors = ["Divan Visagie"]
-repository = "https://github.com/your-repo/slq"
-homepage = "https://github.com/your-repo/slq"
-documentation = "https://github.com/your-repo/slq"
+repository = "https://github.com/divanvisagie/slq"
+homepage = "https://github.com/divanvisagie/slq"
+documentation = "https://github.com/divanvisagie/slq"
 keywords = ["stockholm", "transport", "cli", "sl", "public-transport"]
 categories = ["command-line-utilities"]
 
