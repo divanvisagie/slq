@@ -194,12 +194,8 @@ install_system() {
     log_info "Installing system-wide..."
     cd "$PROJECT_DIR"
 
-    if [[ $EUID -eq 0 ]]; then
-        ./scripts/install.sh
-    else
-        ./scripts/install.sh --user
-        log_info "Installed to user directory (use 'sudo ./scripts/dev.sh install-sys' for system-wide)"
-    fi
+    # The installer auto-detects permissions and falls back to user directory
+    cargo run --bin install
 }
 
 run_demo() {

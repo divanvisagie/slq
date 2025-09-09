@@ -15,9 +15,9 @@ sudo make install
 # Or install to user directory
 make install-user
 
-# Or use the installation script directly
-sudo ./scripts/install.sh
-./scripts/install.sh --user
+# Or use the installer directly
+sudo cargo run --bin install
+cargo run --bin install -- --user
 ```
 
 ### Local Development Build
@@ -37,6 +37,37 @@ cargo build --release
 # Binary will be at target/release/slq
 ```
 
+### Native Installer
+
+The project includes a native Rust installer:
+
+```bash
+# System-wide installation (requires sudo)
+sudo cargo run --bin install
+
+# User installation
+cargo run --bin install -- --user
+
+# Custom prefix
+sudo cargo run --bin install -- --prefix /opt/slq
+
+# Custom directories
+INSTALL_DIR=~/bin cargo run --bin install
+
+# Uninstall
+sudo cargo run --bin install -- --uninstall
+cargo run --bin install -- --user --uninstall
+
+# Show help
+cargo run --bin install -- --help
+```
+
+The installer features:
+- Cross-platform compatibility
+- Auto-fallback to user directory when no root privileges
+- Better error handling and colored output
+- No external dependencies beyond Rust
+
 ### Uninstallation
 
 ```bash
@@ -45,6 +76,9 @@ sudo make uninstall
 
 # Remove user installation
 make uninstall-user
+
+# Or use the installer directly
+sudo cargo run --bin install -- --uninstall
 ```
 
 ## Usage

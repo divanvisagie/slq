@@ -11,6 +11,14 @@ documentation = "https://github.com/divanvisagie/slq"
 keywords = ["stockholm", "transport", "cli", "sl", "public-transport"]
 categories = ["command-line-utilities"]
 
+[[bin]]
+name = "slq"
+path = "src/main.rs"
+
+[[bin]]
+name = "install"
+path = "scripts/install.rs"
+
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
 reqwest = { version = "0.11", features = ["json", "blocking"] }
@@ -19,3 +27,6 @@ serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.8"
 urlencoding = "2.1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

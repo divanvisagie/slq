@@ -1,5 +1,5 @@
 # Makefile for slq - Stockholm Local Traffic Query Tool
-.PHONY: help build build-release test test-blackbox test-integration clean install dev fmt clippy check all
+.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all
 
 # Default target
 help: ## Show this help message
@@ -40,11 +40,11 @@ clippy: ## Run clippy lints
 clean: ## Clean build artifacts
 	cargo clean
 
-install: build-release ## Install system-wide (requires sudo)
-	@./scripts/install.sh
+install: ## Install system-wide (requires sudo)
+	@cargo run --bin install
 
-install-user: build-release ## Install to user directory (~/.local)
-	@./scripts/install.sh --user
+install-user: ## Install to user directory (~/.local)
+	@cargo run --bin install -- --user
 
 install-local: build-release ## Install to ./bin for local use
 	@mkdir -p bin
@@ -53,10 +53,10 @@ install-local: build-release ## Install to ./bin for local use
 	@echo "Make sure ./bin is in your PATH or use the .envrc file"
 
 uninstall: ## Uninstall system-wide installation (requires sudo)
-	@./scripts/install.sh --uninstall
+	@cargo run --bin install -- --uninstall
 
 uninstall-user: ## Uninstall user installation
-	@INSTALL_DIR=$$HOME/.local/bin MAN_DIR=$$HOME/.local/share/man/man1 ./scripts/install.sh --uninstall
+	@cargo run --bin install -- --user --uninstall
 
 # Documentation
 docs: ## Generate and open documentation
