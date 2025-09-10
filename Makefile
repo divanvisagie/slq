@@ -1,5 +1,5 @@
 # Makefile for slq - Stockholm Local Traffic Query Tool
-.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all build-c test-c clean-c install-c benchmark benchmark-quick benchmark-simple benchmark-compile
+.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all build-c test-c clean-c install-c
 
 # Default target
 help: ## Show this help message
@@ -31,17 +31,7 @@ clean-c: ## C version - Clean C version build artifacts
 install-c: build-c ## C version - Install C version system-wide
 	@cd c-version && sudo make install
 
-benchmark: build-release build-c ## Run comprehensive benchmarks comparing Rust and C implementations
-	@./benchmarks/benchmark.sh
 
-benchmark-quick: build-release build-c ## Run quick benchmarks with fewer iterations
-	@./benchmarks/simple_benchmark.sh --warmup 1 --runs 5 --min-runs 3
-
-benchmark-simple: build-release build-c ## Run simple runtime benchmarks (no compilation tests)
-	@./benchmarks/simple_benchmark.sh
-
-benchmark-compile: ## Run compilation performance benchmarks
-	@./benchmarks/compile_benchmark.sh
 
 # Testing targets
 test: test-cli ## Run all tests
