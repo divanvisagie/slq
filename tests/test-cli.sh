@@ -18,7 +18,7 @@ TESTS_FAILED=0
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Set the binary path for C version
 if [[ -f "$PROJECT_DIR/bin/slq" ]]; then

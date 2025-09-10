@@ -82,7 +82,29 @@ test-basic: $(BINDIR)/$(TARGET)
 	@./tests/test.sh
 
 # Run all tests
-test-all: test-cli test-basic
+test-all:
+	@echo "Running all tests..."
+	@echo "===================="
+	@failed=0; \
+	echo "Running comprehensive CLI tests..."; \
+	if ! $(MAKE) test-cli; then \
+		echo "CLI tests failed"; \
+		failed=$$((failed + 1)); \
+	fi; \
+	echo ""; \
+	echo "Running basic functionality tests..."; \
+	if ! $(MAKE) test-basic; then \
+		echo "Basic tests failed"; \
+		failed=$$((failed + 1)); \
+	fi; \
+	echo ""; \
+	echo "==================== TEST SUMMARY ===================="; \
+	if [ $$failed -eq 0 ]; then \
+		echo "✓ All test suites passed!"; \
+	else \
+		echo "✗ $$failed test suite(s) failed"; \
+		exit 1; \
+	fi
 
 # Show help
 help:
