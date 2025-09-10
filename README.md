@@ -11,7 +11,7 @@ Available in both **Rust** (original) and **C** implementations with identical f
 - **Rust version** (`/`): Original implementation using modern Rust ecosystem
 - **C version** (`c-version/`): Full rewrite using jansson and libcurl with identical API
 
-Both versions pass the same comprehensive test suite and provide identical user experience.
+Both versions pass the same comprehensive test suite and provide identical user experience. Comprehensive benchmarking shows similar performance with different trade-offs.
 
 ## Installation
 
@@ -273,18 +273,34 @@ make test        # Run all tests
 make build-c     # Build C version
 make test-c      # Run C version tests
 make clean-c     # Clean C build artifacts
+
+# Performance benchmarking
+make benchmark-quick    # Quick runtime benchmarks
+make benchmark-simple   # Comprehensive runtime benchmarks
+make benchmark-compile  # Compilation performance tests
+make benchmark         # Full benchmark suite
 ```
 
 ### Implementation Comparison
 
-Both implementations provide identical functionality:
-- **Binary size**: Rust ~2.8MB, C ~38KB (shared libs) / ~150KB (static)
-- **Memory usage**: Rust ~8-12MB, C ~2-4MB
-- **Startup time**: Rust ~15-20ms, C ~2-5ms
-- **Dependencies**: Rust (none), C (libcurl + jansson)
-- **Test results**: 26/26 tests pass for both versions
+Both implementations provide identical functionality with comprehensive benchmarking:
 
-See `c-version/IMPLEMENTATION_COMPARISON.md` for detailed analysis.
+| Metric | Rust | C | Winner |
+|--------|------|---|--------|
+| **Binary size** | ~5.1MB | ~37KB | C (138x smaller) |
+| **Cold start** | ~3.5ms | ~5.2ms | Rust (1.5x faster) |
+| **Network ops** | ~1.50s | ~1.35s | C (1.1x faster) |
+| **Memory usage** | ~8-12MB | ~2-4MB | C (lower) |
+| **Compilation** | ~8-15s | ~0.25s | C (60x faster) |
+| **Test results** | 26/26 pass | 26/26 pass | Tie |
+
+**Key Findings:**
+- Performance differences are typically <15% and within statistical noise
+- Network operations dominate runtime (~1.3-1.8s API response time)
+- Binary size difference is most significant practical consideration
+- User experience is identical between implementations
+
+See `c-version/IMPLEMENTATION_COMPARISON.md` and `benchmarks/SUMMARY.md` for detailed analysis.
 
 ### Testing
 
