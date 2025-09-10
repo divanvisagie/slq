@@ -220,10 +220,15 @@ The project includes comprehensive CLI testing:
 
 ```bash
 # Run comprehensive test suite
-./test-cli.sh
+./tests/test-cli.sh
 
 # Run basic functionality test  
-./test.sh
+./tests/test.sh
+
+# Or use make targets
+make test-cli     # Run comprehensive CLI tests
+make test-basic   # Run basic functionality test
+make test-all     # Run all tests
 ```
 
 Tests cover:

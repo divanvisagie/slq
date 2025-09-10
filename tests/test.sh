@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SLQ_BIN="$SCRIPT_DIR/bin/slq"
+SLQ_BIN="$SCRIPT_DIR/../bin/slq"
 
 # Colors for output
 RED='\033[0;31m'

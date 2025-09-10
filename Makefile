@@ -73,6 +73,17 @@ check-deps:
 test: debug
 	./$(BINDIR)/$(TARGET) --help
 
+# Run comprehensive test suite
+test-cli: $(BINDIR)/$(TARGET)
+	@./tests/test-cli.sh
+
+# Run basic functionality test
+test-basic: $(BINDIR)/$(TARGET)
+	@./tests/test.sh
+
+# Run all tests
+test-all: test-cli test-basic
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -85,6 +96,9 @@ help:
 	@echo "  clean        - Remove build artifacts"
 	@echo "  check-deps   - Check if dependencies are installed"
 	@echo "  test         - Build and run basic test"
+	@echo "  test-cli     - Run comprehensive CLI test suite"
+	@echo "  test-basic   - Run basic functionality test"
+	@echo "  test-all     - Run all tests"
 	@echo "  help         - Show this help message"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test help
+.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all help
