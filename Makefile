@@ -1,10 +1,14 @@
 # Makefile for slq - Stockholm Local Traffic Query Tool
-.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all
+.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all build-c test-c clean-c install-c
 
 # Default target
 help: ## Show this help message
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "Rust targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v "## C version" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "C version targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## C version.*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # Build targets
 build: ## Build debug version
@@ -12,6 +16,20 @@ build: ## Build debug version
 
 build-release: ## Build release version
 	cargo build --release
+
+# C version targets
+build-c: ## C version - Build C version
+	@cd c-version && make
+
+test-c: build-c ## C version - Run comprehensive tests on C version
+	@echo "Running C version tests..."
+	@cd c-version && ./test-cli.sh
+
+clean-c: ## C version - Clean C version build artifacts
+	@cd c-version && make clean
+
+install-c: build-c ## C version - Install C version system-wide
+	@cd c-version && sudo make install
 
 # Testing targets
 test: test-cli ## Run all tests
