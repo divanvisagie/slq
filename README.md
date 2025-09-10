@@ -2,133 +2,67 @@
 
 A CLI tool for querying [Storstockholms Lokaltrafik (SL)](https://sl.se) information.
 
-Available in both **Rust** (original) and **C** implementations with identical functionality.
+A C implementation using libcurl and jansson for maximum compatibility and minimal footprint.
 
 ![Logo](docs/slq-small.png)
 
-## Implementation Variants
 
-- **Rust version** (`/`): Original implementation using modern Rust ecosystem
-- **C version** (`c-version/`): Full rewrite using jansson and libcurl with identical API
-
-Both versions pass the same comprehensive test suite and provide identical user experience. Comprehensive benchmarking shows similar performance with different trade-offs.
 
 ## Installation
 
-Choose between Rust or C implementation based on your needs:
+### Prerequisites
 
-### Rust Version (Recommended)
+Install the required libraries:
+
+**macOS:**
+```bash
+brew install jansson curl
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install libjansson-dev libcurl4-openssl-dev
+```
+
+### Build and Install
 
 **System-wide Installation:**
 ```bash
-# Install system-wide (requires sudo)
+make
 sudo make install
+```
 
-# Or install to user directory
+**User Installation:**
+```bash
+make
 make install-user
-
-# Or use the installer directly
-sudo cargo run --bin install
-cargo run --bin install -- --user
 ```
 
-**Dependencies:** None (single binary)
-
-### C Version
-
-**System-wide Installation:**
-```bash
-# Install dependencies first:
-# macOS: brew install jansson curl
-# Ubuntu: sudo apt-get install libjansson-dev libcurl4-openssl-dev
-
-# Build and install
-make build-c
-sudo make install-c
-```
-
-**Dependencies:** libcurl, jansson
-
-### Local Development Build
-
-**Rust:**
-```bash
-# Build and install locally for development
-make install-local
-
-# Or build release version only
-make build-release
-```
-
-**C:**
-```bash
-# Build C version
-make build-c
-
-# Run tests
-make test-c
-```
-
-### Manual Installation
-
-**Rust:**
-```bash
-cargo build --release
-# Binary will be at target/release/slq
-```
-
-**C:**
-```bash
-cd c-version && make
-# Binary will be at c-version/bin/slq
-```
-
-### Native Installer
-
-The project includes a native Rust installer:
+### Manual Build
 
 ```bash
-# System-wide installation (requires sudo)
-sudo cargo run --bin install
-
-# User installation
-cargo run --bin install -- --user
-
-# Custom prefix
-sudo cargo run --bin install -- --prefix /opt/slq
-
-# Custom directories
-INSTALL_DIR=~/bin cargo run --bin install
-
-# Uninstall
-sudo cargo run --bin install -- --uninstall
-cargo run --bin install -- --user --uninstall
-
-# Show help
-cargo run --bin install -- --help
+make
+# Binary will be at bin/slq
 ```
 
-The installer features:
-- Cross-platform compatibility
-- Auto-fallback to user directory when no root privileges
+### Development Build
+
+```bash
+# Build with debug symbols
+make debug
+
+# Run tests  
+make test
+```
 
 ### Uninstallation
 
-**Rust:**
 ```bash
 # Remove system-wide installation
 sudo make uninstall
 
 # Remove user installation
 make uninstall-user
-
-# Or use the installer directly
-sudo cargo run --bin install -- --uninstall
-```
-
-**C:**
-```bash
-cd c-version && sudo make uninstall
 ```
 
 ## Usage
@@ -247,14 +181,7 @@ No API key required for these endpoints.
 
 ## Dependencies
 
-### Rust Version
-- `clap` - Command-line argument parsing
-- `reqwest` - HTTP client
-- `serde` - JSON serialization/deserialization
-- `urlencoding` - URL encoding for search queries
-
-### C Version
-- `libcurl` - HTTP client
+- `libcurl` - HTTP client library
 - `jansson` - JSON parsing library
 
 ## Development
@@ -262,97 +189,49 @@ No API key required for these endpoints.
 ### Building and Testing
 
 ```bash
-# Show all available make targets (includes both Rust and C)
+# Show all available make targets
 make help
 
-# Rust development
-make quick       # Quick development cycle
-make test        # Run all tests
+# Build project
+make             # Build debug version
+make debug       # Build with debug symbols
 
-# C development  
-make build-c     # Build C version
-make test-c      # Run C version tests
-make clean-c     # Clean C build artifacts
+# Testing
+make test        # Run basic functionality test
+make check-deps  # Verify dependencies are installed
 
-# Performance benchmarking
-make benchmark-quick    # Quick runtime benchmarks
-make benchmark-simple   # Comprehensive runtime benchmarks
-make benchmark-compile  # Compilation performance tests
-make benchmark         # Full benchmark suite
+# Maintenance
+make clean       # Remove build artifacts
 ```
 
-### Implementation Comparison
+### Implementation Details
 
-Both implementations provide identical functionality with comprehensive benchmarking:
+This C implementation provides:
 
-| Metric | Rust | C | Winner |
-|--------|------|---|--------|
-| **Binary size** | ~5.1MB | ~37KB | C (138x smaller) |
-| **Cold start** | ~3.5ms | ~5.2ms | Rust (1.5x faster) |
-| **Network ops** | ~1.50s | ~1.35s | C (1.1x faster) |
-| **Memory usage** | ~8-12MB | ~2-4MB | C (lower) |
-| **Compilation** | ~8-15s | ~0.25s | C (60x faster) |
-| **Test results** | 26/26 pass | 26/26 pass | Tie |
-
-**Key Findings:**
-- Performance differences are typically <15% and within statistical noise
-- Network operations dominate runtime (~1.3-1.8s API response time)
-- Binary size difference is most significant practical consideration
-- User experience is identical between implementations
-
-See `c-version/IMPLEMENTATION_COMPARISON.md` and `benchmarks/SUMMARY.md` for detailed analysis.
+- **Minimal footprint**: ~37KB binary size
+- **Fast compilation**: ~0.25s build time  
+- **Universal compatibility**: Works on any system with libcurl and jansson
+- **Memory safe**: Comprehensive manual memory management (valgrind clean)
+- **Robust error handling**: Graceful handling of network and parsing errors
 
 ### Testing
 
-The project includes comprehensive testing at two levels:
-
-#### Test Types
-
-**Black box tests** (`scripts/test-blackbox.sh`):
-- Test individual CLI commands in isolation
-- Verify basic functionality, error handling, and output formats
-- Test each command (search, departures) independently
-- Validate command-line argument parsing and help messages
-- Focus on the external interface without knowledge of internal implementation
-
-Example black-box test:
-```bash
-# Test that search command returns tab-delimited output
-output=$(slq search "Central")
-assert_contains "$output" "T-Centralen"
-assert_tab_delimited "$output"
-```
-
-**Integration tests** (`scripts/test-integration.sh`):
-- Test end-to-end workflows that combine multiple commands
-- Verify realistic user scenarios and data flow between commands
-- Test system behavior under various conditions (performance, concurrency)
-- Validate data consistency across different operations
-- Focus on how components work together as a complete system
-
-Example integration test:
-```bash
-# Test search → departures workflow
-search_output=$(slq search "T-Centralen")
-station_id=$(echo "$search_output" | head -1 | cut -f2)
-departures_output=$(slq departures "$station_id")
-# Verify the workflow produces expected results
-```
-
-
-
-#### Running Tests
+The project includes comprehensive CLI testing:
 
 ```bash
-# Run all tests (black-box and integration)
-make test
+# Run comprehensive test suite
+./test-cli.sh
 
-# Run only black box tests
-make test-blackbox
-
-# Run only integration tests
-make test-integration
+# Run basic functionality test  
+./test.sh
 ```
+
+Tests cover:
+- Basic CLI functionality and help messages
+- Station search with various queries
+- Departures with filtering options
+- Error handling and edge cases
+- Shell integration scenarios
 
 ## Documentation
 

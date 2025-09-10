@@ -1,95 +1,90 @@
-# Makefile for slq - Stockholm Local Traffic Query Tool
-.PHONY: help build build-release test test-blackbox test-integration clean install install-user install-local uninstall uninstall-user dev fmt clippy check all build-c test-c clean-c install-c
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
+LIBS = $(shell pkg-config --libs jansson libcurl)
+SRCDIR = src
+BUILDDIR = build
+BINDIR = bin
+TARGET = slq
+
+# Source files
+SOURCES = $(wildcard $(SRCDIR)/*.c)
+OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 
 # Default target
-help: ## Show this help message
+all: $(BINDIR)/$(TARGET)
+
+# Create directories
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+# Link the final executable
+$(BINDIR)/$(TARGET): $(OBJECTS) | $(BINDIR)
+	$(CC) $(OBJECTS) -o $@ $(LIBS)
+
+# Compile source files
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Install system-wide
+install: $(BINDIR)/$(TARGET)
+	sudo cp $(BINDIR)/$(TARGET) /usr/local/bin/
+	sudo cp slq.1 /usr/local/share/man/man1/
+
+# Install to user directory
+install-user: $(BINDIR)/$(TARGET)
+	mkdir -p $(HOME)/.local/bin
+	mkdir -p $(HOME)/.local/share/man/man1
+	cp $(BINDIR)/$(TARGET) $(HOME)/.local/bin/
+	cp slq.1 $(HOME)/.local/share/man/man1/
+
+# Uninstall system-wide
+uninstall:
+	sudo rm -f /usr/local/bin/$(TARGET)
+	sudo rm -f /usr/local/share/man/man1/slq.1
+
+# Uninstall from user directory
+uninstall-user:
+	rm -f $(HOME)/.local/bin/$(TARGET)
+	rm -f $(HOME)/.local/share/man/man1/slq.1
+
+# Clean build artifacts
+clean:
+	rm -rf $(BUILDDIR) $(BINDIR)
+
+# Debug build
+debug: CFLAGS += -g -DDEBUG
+debug: $(BINDIR)/$(TARGET)
+
+# Check dependencies
+check-deps:
+	@echo "Checking dependencies..."
+	@pkg-config --exists jansson || (echo "Error: jansson not found. Install with: brew install jansson (macOS) or apt-get install libjansson-dev (Ubuntu)" && exit 1)
+	@pkg-config --exists libcurl || (echo "Error: libcurl not found. Install with: brew install curl (macOS) or apt-get install libcurl4-openssl-dev (Ubuntu)" && exit 1)
+	@echo "All dependencies found."
+	@echo "Jansson flags: $(shell pkg-config --cflags jansson)"
+	@echo "Jansson libs: $(shell pkg-config --libs jansson)"
+	@echo "Curl flags: $(shell pkg-config --cflags libcurl)"
+	@echo "Curl libs: $(shell pkg-config --libs libcurl)"
+
+# Test build
+test: debug
+	./$(BINDIR)/$(TARGET) --help
+
+# Show help
+help:
 	@echo "Available targets:"
-	@echo "Rust targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v "## C version" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-	@echo ""
-	@echo "C version targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## C version.*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "  all          - Build the project (default)"
+	@echo "  debug        - Build with debug symbols"
+	@echo "  install      - Install system-wide (requires sudo)"
+	@echo "  install-user - Install to user directory"
+	@echo "  uninstall    - Remove system-wide installation"
+	@echo "  uninstall-user - Remove user installation"
+	@echo "  clean        - Remove build artifacts"
+	@echo "  check-deps   - Check if dependencies are installed"
+	@echo "  test         - Build and run basic test"
+	@echo "  help         - Show this help message"
 
-# Build targets
-build: ## Build debug version
-	cargo build
-
-build-release: ## Build release version
-	cargo build --release
-
-# C version targets
-build-c: ## C version - Build C version
-	@cd c-version && make
-
-test-c: build-c ## C version - Run comprehensive tests on C version
-	@echo "Running C version tests..."
-	@cd c-version && ./test-cli.sh
-
-clean-c: ## C version - Clean C version build artifacts
-	@cd c-version && make clean
-
-install-c: build-c ## C version - Install C version system-wide
-	@cd c-version && sudo make install
-
-
-
-# Testing targets
-test: test-cli ## Run all tests
-
-test-cli: build-release ## Run comprehensive CLI tests
-	@echo "Running CLI tests..."
-	@./scripts/test-cli.sh
-
-# Development targets
-dev: fmt clippy test ## Run all development checks
-
-check: ## Check code without building
-	cargo check
-
-fmt: ## Format code
-	cargo fmt
-
-clippy: ## Run clippy lints
-	cargo clippy -- -D warnings
-
-# Utility targets
-clean: ## Clean build artifacts
-	cargo clean
-
-install: ## Install system-wide (requires sudo)
-	@cargo run --bin install
-
-install-user: ## Install to user directory (~/.local)
-	@cargo run --bin install -- --user
-
-install-local: build-release ## Install to ./bin for local use
-	@mkdir -p bin
-	@cp target/release/slq bin/slq
-	@echo "Installed slq to ./bin/slq"
-	@echo "Make sure ./bin is in your PATH or use the .envrc file"
-
-uninstall: ## Uninstall system-wide installation (requires sudo)
-	@cargo run --bin install -- --uninstall
-
-uninstall-user: ## Uninstall user installation
-	@cargo run --bin install -- --user --uninstall
-
-# Documentation
-docs: ## Generate and open documentation
-	cargo doc --open
-
-# Release targets
-release-check: ## Check if ready for release
-	@echo "Checking release readiness..."
-	@cargo check
-	@cargo clippy -- -D warnings
-	@./scripts/test-cli.sh
-	@echo "All checks passed - ready for release"
-
-
-
-# All checks for CI
-all: fmt clippy test ## Run all checks (suitable for CI)
-
-# Quick development cycle
-quick: fmt build ## Quick development cycle (format, build)
+.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test help
