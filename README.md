@@ -243,6 +243,33 @@ The `.clang-tidy` configuration enforces:
 - Code quality checks (bug detection, performance, readability)
 - Security best practices
 
+### Memory Testing
+
+The project includes comprehensive memory testing using clang sanitizers, which are cross-platform and built into the compiler:
+
+```bash
+# Build and test with AddressSanitizer (detects buffer overflows, use-after-free)
+make test-asan
+
+# Build and test with UndefinedBehaviorSanitizer (detects undefined behavior)
+make test-ubsan
+
+# Build and test with combined sanitizers (recommended)
+make test-sanitize
+```
+
+**What the sanitizers detect:**
+- **AddressSanitizer (ASan)**: Buffer overflows, use-after-free, heap corruption, stack overflows
+- **UndefinedBehaviorSanitizer (UBSan)**: Integer overflows, null pointer dereferences, unaligned memory access
+
+**Advantages over valgrind:**
+- Cross-platform (works on macOS, Linux, Windows)
+- Faster execution (2-3x slowdown vs 10-50x for valgrind)
+- Better error messages with source locations
+- Built into clang and gcc
+
+The sanitizer tests are automatically included in `make test-all` for comprehensive validation.
+
 ### Implementation Details
 
 This C implementation provides:

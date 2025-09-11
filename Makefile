@@ -58,6 +58,20 @@ clean:
 debug: CFLAGS += -g -DDEBUG
 debug: $(BINDIR)/$(TARGET)
 
+# Memory testing builds with sanitizers
+asan: CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+asan: LIBS += -fsanitize=address
+asan: clean $(BINDIR)/$(TARGET)
+
+ubsan: CFLAGS += -g -fsanitize=undefined -fno-omit-frame-pointer
+ubsan: LIBS += -fsanitize=undefined
+ubsan: clean $(BINDIR)/$(TARGET)
+
+# Combined sanitizers (recommended for thorough testing)
+sanitize: CFLAGS += -g -fsanitize=address,undefined -fno-omit-frame-pointer
+sanitize: LIBS += -fsanitize=address,undefined
+sanitize: clean $(BINDIR)/$(TARGET)
+
 # Check dependencies
 check-deps:
 	@echo "Checking dependencies..."
@@ -81,6 +95,33 @@ test-cli: $(BINDIR)/$(TARGET)
 test-basic: $(BINDIR)/$(TARGET)
 	@./tests/test.sh
 
+# Run tests with AddressSanitizer
+test-asan: asan
+	@echo "Running tests with AddressSanitizer..."
+	ASAN_OPTIONS=abort_on_error=1 ./$(BINDIR)/$(TARGET) --help
+	@if [ -f ./tests/test.sh ]; then \
+		echo "Running basic tests with ASan..."; \
+		ASAN_OPTIONS=abort_on_error=1 ./tests/test.sh; \
+	fi
+
+# Run tests with UndefinedBehaviorSanitizer
+test-ubsan: ubsan
+	@echo "Running tests with UndefinedBehaviorSanitizer..."
+	UBSAN_OPTIONS=abort_on_error=1 ./$(BINDIR)/$(TARGET) --help
+	@if [ -f ./tests/test.sh ]; then \
+		echo "Running basic tests with UBSan..."; \
+		UBSAN_OPTIONS=abort_on_error=1 ./tests/test.sh; \
+	fi
+
+# Run tests with combined sanitizers
+test-sanitize: sanitize
+	@echo "Running tests with combined sanitizers..."
+	ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=abort_on_error=1 ./$(BINDIR)/$(TARGET) --help
+	@if [ -f ./tests/test.sh ]; then \
+		echo "Running basic tests with sanitizers..."; \
+		ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=abort_on_error=1 ./tests/test.sh; \
+	fi
+
 # Run all tests
 test-all:
 	@echo "Running all tests..."
@@ -95,6 +136,12 @@ test-all:
 	echo "Running basic functionality tests..."; \
 	if ! $(MAKE) test-basic; then \
 		echo "Basic tests failed"; \
+		failed=$$((failed + 1)); \
+	fi; \
+	echo ""; \
+	echo "Running sanitizer tests..."; \
+	if ! $(MAKE) test-sanitize; then \
+		echo "Sanitizer tests failed"; \
 		failed=$$((failed + 1)); \
 	fi; \
 	echo ""; \
@@ -127,6 +174,9 @@ help:
 	@echo "Available targets:"
 	@echo "  all          - Build the project (default)"
 	@echo "  debug        - Build with debug symbols"
+	@echo "  asan         - Build with AddressSanitizer"
+	@echo "  ubsan        - Build with UndefinedBehaviorSanitizer"
+	@echo "  sanitize     - Build with combined sanitizers (recommended)"
 	@echo "  install      - Install system-wide (requires sudo)"
 	@echo "  install-user - Install to user directory"
 	@echo "  uninstall    - Remove system-wide installation"
@@ -136,10 +186,13 @@ help:
 	@echo "  test         - Build and run basic test"
 	@echo "  test-cli     - Run comprehensive CLI test suite"
 	@echo "  test-basic   - Run basic functionality test"
-	@echo "  test-all     - Run all tests"
+	@echo "  test-asan    - Run tests with AddressSanitizer"
+	@echo "  test-ubsan   - Run tests with UndefinedBehaviorSanitizer"
+	@echo "  test-sanitize - Run tests with combined sanitizers"
+	@echo "  test-all     - Run all tests (including sanitizer tests)"
 	@echo "  lint         - Run clang-tidy static analysis"
 	@echo "  lint-fix     - Run clang-tidy with automatic fixes"
 	@echo "  compile-commands - Generate compile_commands.json for editor support"
 	@echo "  help         - Show this help message"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all lint lint-fix compile-commands help
+.PHONY: all install install-user uninstall uninstall-user clean debug asan ubsan sanitize check-deps test test-cli test-basic test-asan test-ubsan test-sanitize test-all lint lint-fix compile-commands help
