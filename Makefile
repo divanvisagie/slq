@@ -116,6 +116,12 @@ lint-fix:
 	@echo "Running clang-tidy with automatic fixes..."
 	@/opt/homebrew/opt/llvm/bin/clang-tidy $(SRCDIR)/*.c --fix -- $(CFLAGS)
 
+# Generate compile_commands.json for editor support
+compile-commands:
+	@echo "Generating compile_commands.json..."
+	@$(MAKE) clean
+	@bear -- $(MAKE)
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -133,6 +139,7 @@ help:
 	@echo "  test-all     - Run all tests"
 	@echo "  lint         - Run clang-tidy static analysis"
 	@echo "  lint-fix     - Run clang-tidy with automatic fixes"
+	@echo "  compile-commands - Generate compile_commands.json for editor support"
 	@echo "  help         - Show this help message"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all lint lint-fix help
+.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all lint lint-fix compile-commands help

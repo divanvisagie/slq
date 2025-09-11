@@ -13,12 +13,12 @@ void print_search_help(void);
 void print_departures_help(void);
 
 // Function to parse command line arguments
-int parse_args(int argc, char *argv[], cli_args_t *args);
+int parse_args(int argc, char *argv[], CliArgs_t *args);
 
 // Function to initialize CLI args structure with defaults
-void init_cli_args(cli_args_t *args);
+void init_cli_args(CliArgs_t *args);
 
 // Function to validate parsed arguments
-int validate_args(const cli_args_t *args);
+int validate_args(const CliArgs_t *args);
 
 #endif // CLI_H

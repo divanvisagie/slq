@@ -1,0 +1,70 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-O2",
+      "-I/opt/homebrew/Cellar/jansson/2.14.1/include",
+      "-c",
+      "-o",
+      "build/cli.o",
+      "src/cli.c"
+    ],
+    "directory": "/Users/divan/src/com.divanv/slq",
+    "file": "/Users/divan/src/com.divanv/slq/src/cli.c",
+    "output": "/Users/divan/src/com.divanv/slq/build/cli.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-O2",
+      "-I/opt/homebrew/Cellar/jansson/2.14.1/include",
+      "-c",
+      "-o",
+      "build/client.o",
+      "src/client.c"
+    ],
+    "directory": "/Users/divan/src/com.divanv/slq",
+    "file": "/Users/divan/src/com.divanv/slq/src/client.c",
+    "output": "/Users/divan/src/com.divanv/slq/build/client.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-O2",
+      "-I/opt/homebrew/Cellar/jansson/2.14.1/include",
+      "-c",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/Users/divan/src/com.divanv/slq",
+    "file": "/Users/divan/src/com.divanv/slq/src/main.c",
+    "output": "/Users/divan/src/com.divanv/slq/build/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-O2",
+      "-I/opt/homebrew/Cellar/jansson/2.14.1/include",
+      "-c",
+      "-o",
+      "build/types.o",
+      "src/types.c"
+    ],
+    "directory": "/Users/divan/src/com.divanv/slq",
+    "file": "/Users/divan/src/com.divanv/slq/src/types.c",
+    "output": "/Users/divan/src/com.divanv/slq/build/types.o"
+  }
+]

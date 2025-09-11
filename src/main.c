@@ -7,10 +7,10 @@
 #include "types.h"
 
 // Handle search command
-int handle_search(sl_client_t *client, const char *query) {
+int handle_search(SlClient_t *client, const char *query) {
     if (!client || !query) return -1;
     
-    stop_list_t *stops = NULL;
+    StopList_t *stops = NULL;
     if (sl_search_stops(client, query, &stops) != 0) {
         fprintf(stderr, "Failed to search for stops\n");
         return -1;
@@ -31,12 +31,12 @@ int handle_search(sl_client_t *client, const char *query) {
 }
 
 // Handle departures command
-int handle_departures(sl_client_t *client, const char *station,
+int handle_departures(SlClient_t *client, const char *station,
                      const char *line, const char *transport_type,
                      int count, const char *destination) {
     if (!client || !station) return -1;
     
-    departure_list_t *departures = NULL;
+    DepartureList_t *departures = NULL;
     if (sl_get_departures(client, station, line, transport_type, destination, &departures) != 0) {
         fprintf(stderr, "Failed to get departures\n");
         return -1;
@@ -81,7 +81,7 @@ int handle_departures(sl_client_t *client, const char *station,
     }
     
     for (size_t i = 0; i < max_count; i++) {
-        departure_t *dep = &departures->departures[i];
+        Departure_t *dep = &departures->departures[i];
         
         // Parse time
         char actual_time[16] = "??:??";
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
     }
     
     // Parse command line arguments
-    cli_args_t args;
+    CliArgs_t args;
     int parse_result = parse_args(argc, argv, &args);
     
     if (parse_result < 0) {
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
     }
     
     // Create SL client
-    sl_client_t *client = sl_client_new();
+    SlClient_t *client = sl_client_new();
     if (!client) {
         fprintf(stderr, "Failed to create SL client\n");
         free_cli_args(&args);

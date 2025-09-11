@@ -204,6 +204,45 @@ make check-deps  # Verify dependencies are installed
 make clean       # Remove build artifacts
 ```
 
+### Editor Setup
+
+For the best development experience, generate a `compile_commands.json` file that tells your editor where to find external libraries like `jansson` and `libcurl`:
+
+```bash
+# Generate compile_commands.json for editor support
+make compile-commands
+```
+
+This creates a `compile_commands.json` file that provides your editor with:
+- Include paths for external libraries (`-I/opt/homebrew/Cellar/jansson/...`)
+- Compiler flags (`-Wall`, `-Wextra`, `-std=c99`, etc.)
+- Complete build context for each source file
+
+**Editor compatibility:**
+- **VS Code**: Install the C/C++ extension - automatically reads `compile_commands.json`
+- **Vim/Neovim**: Use `clangd` LSP server
+- **Emacs**: Use `lsp-mode` with `clangd`  
+- **CLion/Qt Creator**: Import the `compile_commands.json` file
+
+After generating the file and restarting your editor, you should get proper IntelliSense, error checking, and "go to definition" for all library functions.
+
+### Static Analysis
+
+The project includes clang-tidy configuration for code quality checks:
+
+```bash
+# Run static analysis
+make lint
+
+# Run static analysis with automatic fixes (use with caution)
+make lint-fix
+```
+
+The `.clang-tidy` configuration enforces:
+- Standard C naming conventions (CamelCase_t for typedefs)
+- Code quality checks (bug detection, performance, readability)
+- Security best practices
+
 ### Implementation Details
 
 This C implementation provides:

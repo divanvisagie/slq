@@ -3,7 +3,7 @@
 #include <string.h>
 
 // Free a single stop_info structure
-void free_stop_info(stop_info_t *stop) {
+void free_stop_info(StopInfo_t *stop) {
     if (stop) {
         free(stop->name);
         stop->name = NULL;
@@ -12,7 +12,7 @@ void free_stop_info(stop_info_t *stop) {
 }
 
 // Free a stop_list structure and all its contents
-void free_stop_list(stop_list_t *list) {
+void free_stop_list(StopList_t *list) {
     if (list) {
         if (list->stops) {
             for (size_t i = 0; i < list->count; i++) {
@@ -25,7 +25,7 @@ void free_stop_list(stop_list_t *list) {
 }
 
 // Free a single departure structure
-void free_departure(departure_t *departure) {
+void free_departure(Departure_t *departure) {
     if (departure) {
         free(departure->destination);
         free(departure->expected);
@@ -39,7 +39,7 @@ void free_departure(departure_t *departure) {
 }
 
 // Free a departure_list structure and all its contents
-void free_departure_list(departure_list_t *list) {
+void free_departure_list(DepartureList_t *list) {
     if (list) {
         if (list->departures) {
             for (size_t i = 0; i < list->count; i++) {
@@ -52,7 +52,7 @@ void free_departure_list(departure_list_t *list) {
 }
 
 // Free CLI arguments structure
-void free_cli_args(cli_args_t *args) {
+void free_cli_args(CliArgs_t *args) {
     if (args) {
         free(args->query);
         free(args->station);
@@ -68,7 +68,7 @@ void free_cli_args(cli_args_t *args) {
 }
 
 // Free HTTP response structure
-void free_http_response(http_response_t *response) {
+void free_http_response(HttpResponse_t *response) {
     if (response) {
         free(response->data);
         response->data = NULL;
@@ -77,13 +77,13 @@ void free_http_response(http_response_t *response) {
 }
 
 // Create a new stop list with initial capacity
-stop_list_t *create_stop_list(void) {
-    stop_list_t *list = malloc(sizeof(stop_list_t));
+StopList_t *create_stop_list(void) {
+    StopList_t *list = malloc(sizeof(StopList_t));
     if (!list) return NULL;
     
     list->capacity = 10;
     list->count = 0;
-    list->stops = malloc(sizeof(stop_info_t) * list->capacity);
+    list->stops = malloc(sizeof(StopInfo_t) * list->capacity);
     
     if (!list->stops) {
         free(list);
@@ -94,13 +94,13 @@ stop_list_t *create_stop_list(void) {
 }
 
 // Create a new departure list with initial capacity
-departure_list_t *create_departure_list(void) {
-    departure_list_t *list = malloc(sizeof(departure_list_t));
+DepartureList_t *create_departure_list(void) {
+    DepartureList_t *list = malloc(sizeof(DepartureList_t));
     if (!list) return NULL;
     
     list->capacity = 20;
     list->count = 0;
-    list->departures = malloc(sizeof(departure_t) * list->capacity);
+    list->departures = malloc(sizeof(Departure_t) * list->capacity);
     
     if (!list->departures) {
         free(list);
@@ -123,13 +123,13 @@ static char *strdup_safe(const char *str) {
 }
 
 // Add a stop to the stop list, expanding capacity if needed
-int add_stop_to_list(stop_list_t *list, const char *name, unsigned int id) {
+int add_stop_to_list(StopList_t *list, const char *name, unsigned int id) {
     if (!list || !name) return -1;
     
     // Expand capacity if needed
     if (list->count >= list->capacity) {
         size_t new_capacity = list->capacity * 2;
-        stop_info_t *new_stops = realloc(list->stops, sizeof(stop_info_t) * new_capacity);
+        StopInfo_t *new_stops = realloc(list->stops, sizeof(StopInfo_t) * new_capacity);
         if (!new_stops) return -1;
         
         list->stops = new_stops;
@@ -137,7 +137,7 @@ int add_stop_to_list(stop_list_t *list, const char *name, unsigned int id) {
     }
     
     // Add the new stop
-    stop_info_t *stop = &list->stops[list->count];
+    StopInfo_t *stop = &list->stops[list->count];
     stop->name = strdup_safe(name);
     stop->id = id;
     
@@ -148,7 +148,7 @@ int add_stop_to_list(stop_list_t *list, const char *name, unsigned int id) {
 }
 
 // Add a departure to the departure list, expanding capacity if needed
-int add_departure_to_list(departure_list_t *list, const char *destination, 
+int add_departure_to_list(DepartureList_t *list, const char *destination, 
                          const char *expected, const char *designation, 
                          const char *group_of_lines) {
     if (!list || !destination || !expected || !designation) return -1;
@@ -156,7 +156,7 @@ int add_departure_to_list(departure_list_t *list, const char *destination,
     // Expand capacity if needed
     if (list->count >= list->capacity) {
         size_t new_capacity = list->capacity * 2;
-        departure_t *new_departures = realloc(list->departures, sizeof(departure_t) * new_capacity);
+        Departure_t *new_departures = realloc(list->departures, sizeof(Departure_t) * new_capacity);
         if (!new_departures) return -1;
         
         list->departures = new_departures;
@@ -164,7 +164,7 @@ int add_departure_to_list(departure_list_t *list, const char *destination,
     }
     
     // Add the new departure
-    departure_t *departure = &list->departures[list->count];
+    Departure_t *departure = &list->departures[list->count];
     departure->destination = strdup_safe(destination);
     departure->expected = strdup_safe(expected);
     departure->line.designation = strdup_safe(designation);

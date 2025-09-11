@@ -7,8 +7,8 @@
 #include <jansson.h>
 
 // Create a new SL client
-sl_client_t *sl_client_new(void) {
-    sl_client_t *client = malloc(sizeof(sl_client_t));
+SlClient_t *sl_client_new(void) {
+    SlClient_t *client = malloc(sizeof(SlClient_t));
     if (!client) return NULL;
     
     client->curl = curl_easy_init();
@@ -33,7 +33,7 @@ sl_client_t *sl_client_new(void) {
 }
 
 // Free SL client resources
-void sl_client_free(sl_client_t *client) {
+void sl_client_free(SlClient_t *client) {
     if (client) {
         if (client->curl) {
             curl_easy_cleanup(client->curl);
@@ -46,7 +46,7 @@ void sl_client_free(sl_client_t *client) {
 }
 
 // Callback function to write HTTP response data
-size_t write_response_callback(void *contents, size_t size, size_t nmemb, http_response_t *response) {
+size_t write_response_callback(void *contents, size_t size, size_t nmemb, HttpResponse_t *response) {
     size_t total_size = size * nmemb;
     
     char *new_data = realloc(response->data, response->size + total_size + 1);
@@ -63,10 +63,10 @@ size_t write_response_callback(void *contents, size_t size, size_t nmemb, http_r
 }
 
 // Search for stops matching a query
-int sl_search_stops(sl_client_t *client, const char *query, stop_list_t **result) {
+int sl_search_stops(SlClient_t *client, const char *query, StopList_t **result) {
     if (!client || !query || !result) return -1;
     
-    http_response_t response = {0};
+    HttpResponse_t response = {0};
     
     // Set URL and response structure
     curl_easy_setopt(client->curl, CURLOPT_URL, SL_SITES_URL);
@@ -90,7 +90,7 @@ int sl_search_stops(sl_client_t *client, const char *query, stop_list_t **result
     }
     
     // Parse JSON and filter results
-    stop_list_t *all_sites = NULL;
+    StopList_t *all_sites = NULL;
     if (parse_sites_json(response.data, &all_sites) != 0) {
         fprintf(stderr, "Failed to parse JSON response\n");
         free_http_response(&response);
@@ -100,7 +100,7 @@ int sl_search_stops(sl_client_t *client, const char *query, stop_list_t **result
     free_http_response(&response);
     
     // Filter sites by query
-    stop_list_t *filtered_sites = create_stop_list();
+    StopList_t *filtered_sites = create_stop_list();
     if (!filtered_sites) {
         free_stop_list(all_sites);
         return -1;
@@ -129,9 +129,9 @@ int sl_search_stops(sl_client_t *client, const char *query, stop_list_t **result
 }
 
 // Get departures for a station
-int sl_get_departures(sl_client_t *client, const char *station, 
+int sl_get_departures(SlClient_t *client, const char *station, 
                      const char *line_filter, const char *transport_filter,
-                     const char *destination_filter, departure_list_t **result) {
+                     const char *destination_filter, DepartureList_t **result) {
     if (!client || !station || !result) return -1;
     
     // Find station ID if station is not numeric
@@ -152,7 +152,7 @@ int sl_get_departures(sl_client_t *client, const char *station,
     char url[256];
     snprintf(url, sizeof(url), SL_DEPARTURES_URL_FMT, station_id);
     
-    http_response_t response = {0};
+    HttpResponse_t response = {0};
     
     // Set URL and response structure
     curl_easy_setopt(client->curl, CURLOPT_URL, url);
@@ -176,7 +176,7 @@ int sl_get_departures(sl_client_t *client, const char *station,
     }
     
     // Parse JSON
-    departure_list_t *departures = NULL;
+    DepartureList_t *departures = NULL;
     if (parse_departures_json(response.data, &departures) != 0) {
         fprintf(stderr, "Failed to parse departures JSON\n");
         free_http_response(&response);
@@ -203,10 +203,10 @@ int sl_get_departures(sl_client_t *client, const char *station,
 }
 
 // Get all sites from SL API
-int sl_get_sites(sl_client_t *client, stop_list_t **sites) {
+int sl_get_sites(SlClient_t *client, StopList_t **sites) {
     if (!client || !sites) return -1;
     
-    http_response_t response = {0};
+    HttpResponse_t response = {0};
     
     curl_easy_setopt(client->curl, CURLOPT_URL, SL_SITES_URL);
     curl_easy_setopt(client->curl, CURLOPT_WRITEDATA, &response);
@@ -233,10 +233,10 @@ int sl_get_sites(sl_client_t *client, stop_list_t **sites) {
 }
 
 // Find station ID by name
-unsigned int sl_find_station_id(sl_client_t *client, const char *station_name) {
+unsigned int sl_find_station_id(SlClient_t *client, const char *station_name) {
     if (!client || !station_name) return 0;
     
-    stop_list_t *sites = NULL;
+    StopList_t *sites = NULL;
     if (sl_get_sites(client, &sites) != 0) {
         return 0;
     }
@@ -265,7 +265,7 @@ unsigned int sl_find_station_id(sl_client_t *client, const char *station_name) {
 }
 
 // Parse sites JSON response
-int parse_sites_json(const char *json_data, stop_list_t **result) {
+int parse_sites_json(const char *json_data, StopList_t **result) {
     if (!json_data || !result) return -1;
     
     json_error_t error;
@@ -281,7 +281,7 @@ int parse_sites_json(const char *json_data, stop_list_t **result) {
         return -1;
     }
     
-    stop_list_t *sites = create_stop_list();
+    StopList_t *sites = create_stop_list();
     if (!sites) {
         json_decref(root);
         return -1;
@@ -312,7 +312,7 @@ int parse_sites_json(const char *json_data, stop_list_t **result) {
 }
 
 // Parse departures JSON response
-int parse_departures_json(const char *json_data, departure_list_t **result) {
+int parse_departures_json(const char *json_data, DepartureList_t **result) {
     if (!json_data || !result) return -1;
     
     json_error_t error;
@@ -329,7 +329,7 @@ int parse_departures_json(const char *json_data, departure_list_t **result) {
         return -1;
     }
     
-    departure_list_t *departures = create_departure_list();
+    DepartureList_t *departures = create_departure_list();
     if (!departures) {
         json_decref(root);
         return -1;
@@ -371,7 +371,7 @@ int parse_departures_json(const char *json_data, departure_list_t **result) {
 }
 
 // Filter departures by line number
-void filter_departures_by_line(departure_list_t *departures, const char *line) {
+void filter_departures_by_line(DepartureList_t *departures, const char *line) {
     if (!departures || !line) return;
     
     size_t write_idx = 0;
@@ -390,7 +390,7 @@ void filter_departures_by_line(departure_list_t *departures, const char *line) {
 }
 
 // Filter departures by transport type
-void filter_departures_by_transport(departure_list_t *departures, const char *transport_type) {
+void filter_departures_by_transport(DepartureList_t *departures, const char *transport_type) {
     if (!departures || !transport_type) return;
     
     char *transport_lower = str_to_lower(transport_type);
@@ -434,7 +434,7 @@ void filter_departures_by_transport(departure_list_t *departures, const char *tr
 }
 
 // Filter departures by destination
-void filter_departures_by_destination(departure_list_t *departures, const char *destination) {
+void filter_departures_by_destination(DepartureList_t *departures, const char *destination) {
     if (!departures || !destination) return;
     
     // Check if destination is numeric (ID)
