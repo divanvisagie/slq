@@ -1,4 +1,4 @@
-CC = gcc
+CC = cc
 CFLAGS = -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
 LIBS = $(shell pkg-config --libs jansson libcurl)
 SRCDIR = src
