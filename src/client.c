@@ -496,21 +496,23 @@ int calculate_wait_minutes(const char *time_str) {
     struct tm departure_tm;
     memset(&departure_tm, 0, sizeof(departure_tm));
     
-    // Parse departure time
+    // Parse departure time (API returns local Swedish time)
     if (strptime(time_str, "%Y-%m-%dT%H:%M:%S", &departure_tm) == NULL) {
         return -1;
     }
     
+    // The API returns times in local Swedish time, so we need to treat
+    // the parsed time as already being in the correct local timezone
+    departure_tm.tm_isdst = -1; // Let mktime determine DST
+    
     // Get current time
     time_t now = time(NULL);
-    struct tm *current_tm = localtime(&now);
     
-    // Convert to time_t for comparison
+    // Convert departure time to time_t (treats as local time)
     time_t departure_time = mktime(&departure_tm);
-    time_t current_time = mktime(current_tm);
     
     // Calculate difference in minutes
-    double diff_seconds = difftime(departure_time, current_time);
+    double diff_seconds = difftime(departure_time, now);
     int diff_minutes = (int)(diff_seconds / 60.0);
     
     return diff_minutes > 0 ? diff_minutes : 0;
