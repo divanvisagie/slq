@@ -106,6 +106,16 @@ test-all:
 		exit 1; \
 	fi
 
+# Run clang-tidy static analysis
+lint:
+	@echo "Running clang-tidy static analysis..."
+	@/opt/homebrew/opt/llvm/bin/clang-tidy $(SRCDIR)/*.c -- $(CFLAGS)
+
+# Run clang-tidy with fixes
+lint-fix:
+	@echo "Running clang-tidy with automatic fixes..."
+	@/opt/homebrew/opt/llvm/bin/clang-tidy $(SRCDIR)/*.c --fix -- $(CFLAGS)
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -121,6 +131,8 @@ help:
 	@echo "  test-cli     - Run comprehensive CLI test suite"
 	@echo "  test-basic   - Run basic functionality test"
 	@echo "  test-all     - Run all tests"
+	@echo "  lint         - Run clang-tidy static analysis"
+	@echo "  lint-fix     - Run clang-tidy with automatic fixes"
 	@echo "  help         - Show this help message"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all help
+.PHONY: all install install-user uninstall uninstall-user clean debug check-deps test test-cli test-basic test-all lint lint-fix help
