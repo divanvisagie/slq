@@ -13,12 +13,14 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Configuration variables
+# Default values
 PREFIX="/usr/local"
 DEBUG=false
 ENABLE_SANITIZERS=false
 ENABLE_STATIC=false
 CC="cc"
 VERBOSE=false
+AUTO_INSTALL=true
 
 # Dependency status
 DEPS_OK=true
@@ -61,10 +63,12 @@ OPTIONS:
     --enable-static      Build static binary (experimental)
     --cc=COMPILER        Use specific C compiler (default: cc)
     --verbose           Show detailed output
+    --no-auto-install   Don't automatically install missing dependencies
     --help              Show this help message
 
 EXAMPLES:
-    ./configure                           # Standard configuration
+    ./configure                           # Standard configuration (auto-installs dependencies)
+    ./configure --no-auto-install        # Check dependencies without installing
     ./configure --prefix=/usr             # Install to /usr instead of /usr/local
     ./configure --enable-debug            # Debug build
     ./configure --enable-sanitizers       # Development build with sanitizers
@@ -109,6 +113,10 @@ parse_args() {
                 VERBOSE=true
                 shift
                 ;;
+            --no-auto-install)
+                AUTO_INSTALL=false
+                shift
+                ;;
             --help)
                 show_usage
                 exit 0
@@ -127,6 +135,89 @@ command_exists() {
     command -v "$1" &> /dev/null
 }
 
+# Detect operating system
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ -f /etc/redhat-release ]]; then
+        echo "redhat"
+    elif [[ -f /etc/debian_version ]]; then
+        echo "debian"
+    elif [[ -f /etc/arch-release ]]; then
+        echo "arch"
+    else
+        echo "unknown"
+    fi
+}
+
+# Install package using system package manager
+install_package() {
+    local packages="$1"
+    local os=$(detect_os)
+
+    case $os in
+        macos)
+            if ! command_exists brew; then
+                log_error "Homebrew not found. Install from https://brew.sh"
+                return 1
+            fi
+            log_info "Installing with Homebrew: $packages"
+            brew install $packages
+            ;;
+        debian)
+            log_info "Installing with apt: $packages"
+            sudo apt-get update
+            sudo apt-get install -y $packages
+            ;;
+        redhat)
+            if command_exists dnf; then
+                log_info "Installing with dnf: $packages"
+                sudo dnf install -y $packages
+            elif command_exists yum; then
+                log_info "Installing with yum: $packages"
+                sudo yum install -y $packages
+            else
+                log_error "No package manager found (dnf/yum)"
+                return 1
+            fi
+            ;;
+        arch)
+            log_info "Installing with pacman: $packages"
+            sudo pacman -S --noconfirm $packages
+            ;;
+        *)
+            log_error "Unsupported operating system for auto-install"
+            return 1
+            ;;
+    esac
+}
+
+# Get package names for current OS
+get_package_names() {
+    local dep="$1"
+    local os=$(detect_os)
+
+    case "$dep:$os" in
+        "pkg-config:macos") echo "pkg-config" ;;
+        "pkg-config:debian") echo "pkg-config" ;;
+        "pkg-config:redhat") echo "pkgconfig" ;;
+        "pkg-config:arch") echo "pkg-config" ;;
+        "jansson:macos") echo "jansson" ;;
+        "jansson:debian") echo "libjansson-dev" ;;
+        "jansson:redhat") echo "jansson-devel" ;;
+        "jansson:arch") echo "jansson" ;;
+        "curl:macos") echo "curl" ;;
+        "curl:debian") echo "libcurl4-openssl-dev" ;;
+        "curl:redhat") echo "libcurl-devel" ;;
+        "curl:arch") echo "curl" ;;
+        "build-tools:macos") echo "" ;; # Xcode tools handled separately
+        "build-tools:debian") echo "build-essential" ;;
+        "build-tools:redhat") echo "gcc make" ;;
+        "build-tools:arch") echo "base-devel" ;;
+        *) echo "" ;;
+    esac
+}
+
 # Check pkg-config
 check_pkg_config() {
     log_info "Checking for pkg-config..."
@@ -137,11 +228,23 @@ check_pkg_config() {
     else
         PKG_CONFIG_OK=false
         log_error "pkg-config not found"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            local packages=$(get_package_names "pkg-config")
+            if [[ -n "$packages" ]] && install_package "$packages"; then
+                if command_exists pkg-config; then
+                    PKG_CONFIG_OK=true
+                    local version=$(pkg-config --version)
+                    log_success "pkg-config installed successfully (version $version)"
+                    return
+                fi
+            fi
+            log_error "Failed to install pkg-config automatically"
+            echo "  Please install pkg-config manually and try again."
+        fi
+
         echo "  pkg-config is required for dependency management."
-        echo "  Install with:"
-        echo "    macOS:        brew install pkg-config"
-        echo "    Ubuntu/Debian: sudo apt-get install pkg-config"
-        echo "    CentOS/RHEL:  sudo yum install pkgconfig"
+        echo "  Install failed - please install manually or check system package manager."
         DEPS_OK=false
     fi
 }
@@ -162,12 +265,23 @@ check_jansson() {
     else
         JANSSON_OK=false
         log_error "jansson not found"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            local packages=$(get_package_names "jansson")
+            if [[ -n "$packages" ]] && install_package "$packages"; then
+                if pkg-config --exists jansson; then
+                    JANSSON_OK=true
+                    local version=$(pkg-config --modversion jansson)
+                    log_success "jansson installed successfully (version $version)"
+                    return
+                fi
+            fi
+            log_error "Failed to install jansson automatically"
+            echo "  Please install jansson manually and try again."
+        fi
+
         echo "  jansson is required for JSON parsing."
-        echo "  Install with:"
-        echo "    macOS:        brew install jansson"
-        echo "    Ubuntu/Debian: sudo apt-get install libjansson-dev"
-        echo "    CentOS/RHEL:  sudo yum install jansson-devel"
-        echo "    Arch Linux:   sudo pacman -S jansson"
+        echo "  Install failed - please install manually or check system package manager."
         DEPS_OK=false
     fi
 }
@@ -188,12 +302,23 @@ check_curl() {
     else
         CURL_OK=false
         log_error "libcurl not found"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            local packages=$(get_package_names "curl")
+            if [[ -n "$packages" ]] && install_package "$packages"; then
+                if pkg-config --exists libcurl; then
+                    CURL_OK=true
+                    local version=$(pkg-config --modversion libcurl)
+                    log_success "libcurl installed successfully (version $version)"
+                    return
+                fi
+            fi
+            log_error "Failed to install libcurl automatically"
+            echo "  Please install libcurl manually and try again."
+        fi
+
         echo "  libcurl is required for HTTP requests."
-        echo "  Install with:"
-        echo "    macOS:        brew install curl (usually pre-installed)"
-        echo "    Ubuntu/Debian: sudo apt-get install libcurl4-openssl-dev"
-        echo "    CentOS/RHEL:  sudo yum install libcurl-devel"
-        echo "    Arch Linux:   sudo pacman -S curl"
+        echo "  Install failed - please install manually or check system package manager."
         DEPS_OK=false
     fi
 }
@@ -210,12 +335,42 @@ check_compiler() {
         fi
     else
         log_error "C compiler '$CC' not found"
+
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            local os=$(detect_os)
+            case $os in
+                macos)
+                    log_info "Installing Xcode command line tools..."
+                    if xcode-select --install 2>/dev/null; then
+                        log_info "Xcode tools installation started. Please complete the installation and run configure again."
+                        exit 0
+                    else
+                        log_warning "Xcode tools may already be installed"
+                    fi
+                    ;;
+                *)
+                    local packages=$(get_package_names "build-tools")
+                    if [[ -n "$packages" ]] && install_package "$packages"; then
+                        if command_exists "$CC" || command_exists "gcc" || command_exists "clang"; then
+                            # Update CC if default cc doesn't exist but gcc/clang does
+                            if [[ "$CC" == "cc" ]] && ! command_exists "cc"; then
+                                if command_exists "gcc"; then
+                                    CC="gcc"
+                                elif command_exists "clang"; then
+                                    CC="clang"
+                                fi
+                            fi
+                            log_success "C compiler installed successfully"
+                            return
+                        fi
+                    fi
+                    log_error "Failed to install C compiler automatically"
+                    ;;
+            esac
+        fi
+
         echo "  A C compiler is required to build slq."
-        echo "  Install with:"
-        echo "    macOS:        xcode-select --install"
-        echo "    Ubuntu/Debian: sudo apt-get install build-essential"
-        echo "    CentOS/RHEL:  sudo yum groupinstall 'Development Tools'"
-        echo "    Arch Linux:   sudo pacman -S base-devel"
+        echo "  Run: ./configure --auto-install"
         DEPS_OK=false
     fi
 }
@@ -229,7 +384,7 @@ check_make() {
     else
         log_error "make not found"
         echo "  GNU make is required to build slq."
-        echo "  Install with your system's package manager."
+        echo "  Please install make and try again."
         DEPS_OK=false
     fi
 }
@@ -357,7 +512,13 @@ show_summary() {
         echo "  make publish-dry"
         echo "  make release"
     else
-        log_error "Missing dependencies - please install them and run configure again"
+        log_error "Missing dependencies detected"
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            echo "Some dependencies could not be installed automatically."
+            echo "Please install them manually and run configure again."
+        else
+            echo "Please install missing dependencies and run configure again."
+        fi
         exit 1
     fi
 }

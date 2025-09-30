@@ -12,38 +12,50 @@ A C implementation using libcurl and jansson for maximum compatibility and minim
 
 ### Quick Start
 
-**Standard Installation:**
+**One-Command Installation:**
 ```bash
-./configure
+# Install everything automatically (dependencies + build + install)
+./install.sh
+```
+
+**Alternative: Step-by-Step:**
+```bash
+# Auto-install dependencies and configure
+./configure --auto-install
+
+# Build and install
 make
 sudo make install
 ```
 
 **Development Setup:**
 ```bash
-./configure --enable-debug --enable-sanitizers
-make test-all
+# One-command development setup
+./install.sh --dev --user
 ```
 
-### Configuration
+> **Note:** The `./install.sh` script handles everything automatically: dependency installation, configuration, building, testing, and installation. For more control, use `./configure --auto-install` followed by `make install`.
 
-The `./configure` script checks dependencies and sets up the build environment:
+### Installation Options
 
+**One-Command Setup (Recommended):**
 ```bash
-# Check dependencies and configure for production
-./configure
+./install.sh              # System-wide installation
+./install.sh --user       # User installation (~/.local)
+./install.sh --dev        # Development setup
+```
 
-# Configure for development with debug symbols and sanitizers
-./configure --enable-debug --enable-sanitizers
-
-# Custom installation prefix
-./configure --prefix=/usr
-
-# See all options
-./configure --help
+**Manual Configuration:**
+```bash
+./configure                 # Auto-install dependencies and configure
+make                        # Build
+sudo make install          # Install system-wide
+# OR
+make install-user          # Install to ~/.local
 ```
 
 **Configuration Options:**
+- `--no-auto-install` - Don't automatically install missing dependencies  
 - `--prefix=DIR` - Installation prefix (default: `/usr/local`)
 - `--enable-debug` - Build with debug symbols and debugging info
 - `--enable-sanitizers` - Enable AddressSanitizer and UBSan for development
@@ -51,43 +63,19 @@ The `./configure` script checks dependencies and sets up the build environment:
 - `--cc=COMPILER` - Use specific C compiler
 - `--verbose` - Show detailed dependency information
 
-### Dependencies
+**Just Build (No Install):**
+```bash
+./configure                 # Set up build environment with dependencies
+make                        # Build binary
+./bin/slq --help           # Use directly from build directory
+```
 
-The configure script will check for and guide installation of:
-
-**Required:**
+The configure script automatically detects your system and installs:
 - C compiler (gcc, clang, etc.)
 - pkg-config
-- jansson (JSON library)
+- jansson (JSON library) 
 - libcurl (HTTP library)
 - make
-
-**Installation commands:**
-
-**macOS:**
-```bash
-# Usually pre-installed: clang, curl
-brew install jansson pkg-config
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install build-essential pkg-config libjansson-dev libcurl4-openssl-dev
-```
-
-**CentOS/RHEL:**
-```bash
-sudo yum groupinstall 'Development Tools'
-sudo yum install pkgconfig jansson-devel libcurl-devel
-```
-
-### Manual Build
-
-```bash
-./configure
-make
-# Binary will be at bin/slq
-```
 
 ### Uninstallation
 
@@ -349,15 +337,7 @@ Publishing requires:
 - Clean git working directory (or use `--force`)
 
 The configure script will check for GitHub CLI and show its status.
-
-```bash
-# Install GitHub CLI
-brew install gh                    # macOS
-sudo apt install gh               # Ubuntu/Debian
-
-# Authenticate with GitHub
-gh auth login
-```
+If needed, install manually: `brew install gh` / `sudo apt install gh`, then `gh auth login`
 
 ### Version Management
 
