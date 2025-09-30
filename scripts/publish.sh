@@ -17,6 +17,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 DRY_RUN=false
 FORCE=false
 VERSION=""
+YES=false
 
 # Functions
 log_info() {
@@ -44,6 +45,7 @@ Publish a new release of slq to GitHub with binary artifacts.
 OPTIONS:
     -d, --dry-run    Show what would be done without making changes
     -f, --force      Force release even if tag already exists
+    -y, --yes        Skip confirmation prompt
     -h, --help       Show this help message
 
 ARGUMENTS:
@@ -56,6 +58,7 @@ EXAMPLES:
     $0 v1.2.3            # Release version v1.2.3
     $0 --dry-run         # Preview what would happen
     $0 --force v1.2.3    # Force release even if tag exists
+    $0 --yes             # Skip confirmation prompt
 
 REQUIREMENTS:
     - gh CLI tool must be installed and authenticated
@@ -74,6 +77,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -f|--force)
             FORCE=true
+            shift
+            ;;
+        -y|--yes)
+            YES=true
             shift
             ;;
         -h|--help)
@@ -177,7 +184,7 @@ echo "  Dry run: $DRY_RUN"
 echo "  Force: $FORCE"
 echo ""
 
-if [[ "$DRY_RUN" == false ]]; then
+if [[ "$DRY_RUN" == false ]] && [[ "$YES" == false ]]; then
     read -p "Proceed with release? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
