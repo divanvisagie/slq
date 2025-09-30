@@ -7,6 +7,8 @@
 #include "types.h"
 
 // Handle search command
+// Search for stations by name. Returns tab-delimited output with station names and IDs,
+// suitable for shell scripting. Each line contains station name followed by tab and numeric ID.
 int handle_search(SlClient_t *client, const char *query) {
     if (!client || !query) return -1;
     
@@ -30,7 +32,10 @@ int handle_search(SlClient_t *client, const char *query) {
     return 0;
 }
 
-// Handle departures command
+// Handle departures command  
+// Show upcoming departures from a station. Station can be specified by name or numeric ID.
+// Displays wait times, departure times, line numbers, destinations, and transport types.
+// Supports filtering by line, transport type, destination, and limiting result count.
 int handle_departures(SlClient_t *client, const char *station,
                      const char *line, const char *transport_type,
                      int count, const char *destination) {
@@ -48,7 +53,7 @@ int handle_departures(SlClient_t *client, const char *station,
         return 0;
     }
     
-    // Build title
+    // Build descriptive title including station name and any active filters
     char title[256];
     snprintf(title, sizeof(title), "Departures from %s", station);
     
@@ -74,7 +79,7 @@ int handle_departures(SlClient_t *client, const char *station,
     printf("%-5s %-6s %-6s %-20s Type\n", "Wait", "Time", "Line", "Destination");
     printf("%s\n", "----------------------------------------------------------------------");
     
-    // Print departures (limited by count)
+    // Print departures in tabular format (limited by count parameter, defaults to 10)
     size_t max_count = (size_t)count;
     if (max_count > departures->count) {
         max_count = departures->count;
@@ -83,11 +88,11 @@ int handle_departures(SlClient_t *client, const char *station,
     for (size_t i = 0; i < max_count; i++) {
         Departure_t *dep = &departures->departures[i];
         
-        // Parse time
+        // Parse departure time from expected field into HH:MM format
         char actual_time[16] = "??:??";
         parse_departure_time(dep->expected, actual_time, sizeof(actual_time));
         
-        // Calculate wait time
+        // Calculate wait time in minutes from now, display as "Now", "Xm", or "?" for unknown
         int wait_mins = calculate_wait_minutes(dep->expected);
         char wait_str[16];
         if (wait_mins == 0) {
@@ -98,7 +103,7 @@ int handle_departures(SlClient_t *client, const char *station,
             snprintf(wait_str, sizeof(wait_str), "%dm", wait_mins);
         }
         
-        // Get transport type (group_of_lines)
+        // Get transport type from group_of_lines field (metro, bus, train, tram, etc.)
         const char *type = dep->line.group_of_lines ? dep->line.group_of_lines : "Unknown";
         
         printf("%-5s %-6s %-6s %-20s %s\n",
@@ -114,13 +119,14 @@ int handle_departures(SlClient_t *client, const char *station,
 }
 
 int main(int argc, char *argv[]) {
-    // Initialize libcurl
+    // Initialize libcurl for HTTP requests to SL APIs
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         fprintf(stderr, "Failed to initialize libcurl\n");
         return EXIT_FAILURE;
     }
     
-    // Parse command line arguments
+    // Parse command line arguments into structured format
+    // Returns: -1 for error, 0 for success, 1 for help requested
     CliArgs_t args;
     int parse_result = parse_args(argc, argv, &args);
     
@@ -144,7 +150,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     
-    // Handle help command
+    // Handle help command - print usage and exit successfully
     if (args.command == CMD_HELP) {
         print_usage(argv[0]);
         free_cli_args(&args);
@@ -152,7 +158,7 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
     
-    // Create SL client
+    // Create SL client for API communication
     SlClient_t *client = sl_client_new();
     if (!client) {
         fprintf(stderr, "Failed to create SL client\n");
@@ -163,15 +169,17 @@ int main(int argc, char *argv[]) {
     
     int result = EXIT_SUCCESS;
     
-    // Handle commands
+    // Route to appropriate command handler based on parsed command type
     switch (args.command) {
         case CMD_SEARCH:
+            // Execute station search with user query
             if (handle_search(client, args.query) != 0) {
                 result = EXIT_FAILURE;
             }
             break;
             
         case CMD_DEPARTURES:
+            // Execute departures lookup with all filtering options
             if (handle_departures(client, args.station, args.line, 
                                  args.transport_type, args.count, args.destination) != 0) {
                 result = EXIT_FAILURE;
@@ -180,11 +188,12 @@ int main(int argc, char *argv[]) {
             
         case CMD_HELP:
         default:
+            // Fallback to usage information for unknown commands
             print_usage(argv[0]);
             break;
     }
     
-    // Cleanup
+    // Cleanup all allocated resources before exit
     sl_client_free(client);
     free_cli_args(&args);
     curl_global_cleanup();
