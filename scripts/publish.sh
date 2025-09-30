@@ -305,7 +305,15 @@ fi
 # Create git tag and push
 log_info "Creating and pushing git tag..."
 git tag -a "$VERSION" -m "Release $VERSION"
-git push origin "$VERSION"
+
+# Auto-detect remote name
+REMOTE=$(git remote | head -1)
+if [[ -z "$REMOTE" ]]; then
+    log_error "No git remote found"
+    exit 1
+fi
+log_info "Pushing tag to remote: $REMOTE"
+git push "$REMOTE" "$VERSION"
 
 # Create GitHub release
 log_info "Creating GitHub release..."
