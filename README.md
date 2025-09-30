@@ -12,29 +12,41 @@ A C implementation using libcurl and jansson for maximum compatibility and minim
 
 ### Quick Start
 
-**One-Command Installation:**
+**Install slq (One Command):**
 ```bash
-# Install everything automatically (dependencies + build + install)
 ./install.sh
 ```
 
-**Alternative: Step-by-Step:**
-```bash
-# Auto-install dependencies and configure
-./configure --auto-install
+That's it! This automatically:
+- Installs all dependencies
+- Configures the build 
+- Compiles the project
+- Runs tests
+- Installs slq system-wide
 
-# Build and install
-make
-sudo make install
+**Other Options:**
+```bash
+./install.sh --user       # Install to ~/.local instead of system-wide
+./install.sh --dev        # Development setup with debugging tools
 ```
 
-**Development Setup:**
-```bash
-# One-command development setup
-./install.sh --dev --user
-```
+> **Note:** No manual dependency installation needed! The installer detects your system and handles everything automatically.
 
-> **Note:** The `./install.sh` script handles everything automatically: dependency installation, configuration, building, testing, and installation. For more control, use `./configure --auto-install` followed by `make install`.
+**Quick Demo:**
+```bash
+# Search for stations
+slq search "Central"
+
+# Get departures from T-Centralen  
+slq departures "T-Centralen"
+
+# Filter by transport type
+slq departures "T-Centralen" --transport-type metro
+
+# Get help
+slq --help
+man slq
+```
 
 ### Installation Options
 
