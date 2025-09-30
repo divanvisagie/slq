@@ -10,49 +10,83 @@ A C implementation using libcurl and jansson for maximum compatibility and minim
 
 ## Installation
 
-### Prerequisites
+### Quick Start
 
-Install the required libraries:
-
-**macOS:**
+**Standard Installation:**
 ```bash
-brew install jansson curl
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install libjansson-dev libcurl4-openssl-dev
-```
-
-### Build and Install
-
-**System-wide Installation:**
-```bash
+./configure
 make
 sudo make install
 ```
 
-**User Installation:**
+**Development Setup:**
 ```bash
-make
-make install-user
+./configure --enable-debug --enable-sanitizers
+make test-all
+```
+
+### Configuration
+
+The `./configure` script checks dependencies and sets up the build environment:
+
+```bash
+# Check dependencies and configure for production
+./configure
+
+# Configure for development with debug symbols and sanitizers
+./configure --enable-debug --enable-sanitizers
+
+# Custom installation prefix
+./configure --prefix=/usr
+
+# See all options
+./configure --help
+```
+
+**Configuration Options:**
+- `--prefix=DIR` - Installation prefix (default: `/usr/local`)
+- `--enable-debug` - Build with debug symbols and debugging info
+- `--enable-sanitizers` - Enable AddressSanitizer and UBSan for development
+- `--enable-static` - Build static binary (experimental)
+- `--cc=COMPILER` - Use specific C compiler
+- `--verbose` - Show detailed dependency information
+
+### Dependencies
+
+The configure script will check for and guide installation of:
+
+**Required:**
+- C compiler (gcc, clang, etc.)
+- pkg-config
+- jansson (JSON library)
+- libcurl (HTTP library)
+- make
+
+**Installation commands:**
+
+**macOS:**
+```bash
+# Usually pre-installed: clang, curl
+brew install jansson pkg-config
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install build-essential pkg-config libjansson-dev libcurl4-openssl-dev
+```
+
+**CentOS/RHEL:**
+```bash
+sudo yum groupinstall 'Development Tools'
+sudo yum install pkgconfig jansson-devel libcurl-devel
 ```
 
 ### Manual Build
 
 ```bash
+./configure
 make
 # Binary will be at bin/slq
-```
-
-### Development Build
-
-```bash
-# Build with debug symbols
-make debug
-
-# Run tests  
-make test
 ```
 
 ### Uninstallation
@@ -308,10 +342,13 @@ Tests cover:
 
 ### Prerequisites
 
-To publish releases, you need:
+Publishing requires:
+- Configured build environment (`./configure` completed successfully)
 - [GitHub CLI (gh)](https://cli.github.com/) installed and authenticated
 - Push access to the repository
 - Clean git working directory (or use `--force`)
+
+The configure script will check for GitHub CLI and show its status.
 
 ```bash
 # Install GitHub CLI

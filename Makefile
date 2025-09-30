@@ -1,9 +1,14 @@
 # Project configuration
 VERSION = 0.1.0
 
-CC = cc
-CFLAGS = -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
-LIBS = $(shell pkg-config --libs jansson libcurl)
+# Include configuration from configure script if available
+-include config.mk
+
+# Default values (overridden by config.mk if present)
+CC ?= cc
+PREFIX ?= /usr/local
+CFLAGS ?= -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
+LIBS ?= $(shell pkg-config --libs jansson libcurl)
 SRCDIR = src
 BUILDDIR = build
 BINDIR = bin
@@ -33,8 +38,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
 
 # Install system-wide
 install: $(BINDIR)/$(TARGET)
-	sudo cp $(BINDIR)/$(TARGET) /usr/local/bin/
-	sudo cp slq.1 /usr/local/share/man/man1/
+	sudo mkdir -p $(PREFIX)/bin $(PREFIX)/share/man/man1
+	sudo cp $(BINDIR)/$(TARGET) $(PREFIX)/bin/
+	sudo cp slq.1 $(PREFIX)/share/man/man1/
 
 # Install to user directory
 install-user: $(BINDIR)/$(TARGET)
@@ -45,8 +51,8 @@ install-user: $(BINDIR)/$(TARGET)
 
 # Uninstall system-wide
 uninstall:
-	sudo rm -f /usr/local/bin/$(TARGET)
-	sudo rm -f /usr/local/share/man/man1/slq.1
+	sudo rm -f $(PREFIX)/bin/$(TARGET)
+	sudo rm -f $(PREFIX)/share/man/man1/slq.1
 
 # Uninstall from user directory
 uninstall-user:
@@ -75,16 +81,13 @@ sanitize: CFLAGS += -g -fsanitize=address,undefined -fno-omit-frame-pointer
 sanitize: LIBS += -fsanitize=address,undefined
 sanitize: clean $(BINDIR)/$(TARGET)
 
-# Check dependencies
+# Check dependencies (deprecated - use ./configure instead)
 check-deps:
-	@echo "Checking dependencies..."
-	@pkg-config --exists jansson || (echo "Error: jansson not found. Install with: brew install jansson (macOS) or apt-get install libjansson-dev (Ubuntu)" && exit 1)
-	@pkg-config --exists libcurl || (echo "Error: libcurl not found. Install with: brew install curl (macOS) or apt-get install libcurl4-openssl-dev (Ubuntu)" && exit 1)
-	@echo "All dependencies found."
-	@echo "Jansson flags: $(shell pkg-config --cflags jansson)"
-	@echo "Jansson libs: $(shell pkg-config --libs jansson)"
-	@echo "Curl flags: $(shell pkg-config --cflags libcurl)"
-	@echo "Curl libs: $(shell pkg-config --libs libcurl)"
+	@echo "Warning: 'make check-deps' is deprecated."
+	@echo "Use './configure' to check dependencies and set up build environment."
+	@echo ""
+	@echo "For quick setup:"
+	@echo "  ./configure && make"
 
 # Test build
 test: debug
@@ -172,8 +175,18 @@ compile-commands:
 	@$(MAKE) clean
 	@bear -- $(MAKE)
 
+# Check if configured (soft warning)
+check-configured:
+	@if [ ! -f config.mk ]; then \
+		echo "Warning: Not configured. Run ./configure for optimal setup"; \
+		echo "Building with default configuration..."; \
+	fi
+
 # Publish release to GitHub
 publish:
+	@if [ ! -f config.mk ]; then \
+		echo "Warning: Not configured. Run ./configure first for best results"; \
+	fi
 	@./scripts/publish.sh $(VERSION)
 
 # Publish with dry-run (preview mode)
@@ -214,7 +227,12 @@ release:
 help:
 	@echo "Available targets:"
 	@echo "  Current version: $(VERSION)"
+	@echo "  Install prefix: $(PREFIX)"
 	@echo ""
+	@if [ ! -f config.mk ]; then \
+		echo "  Warning: Not configured. Run ./configure first"; \
+		echo ""; \
+	fi
 	@echo "  all          - Build the project (default)"
 	@echo "  debug        - Build with debug symbols"
 	@echo "  asan         - Build with AddressSanitizer"
@@ -225,7 +243,6 @@ help:
 	@echo "  uninstall    - Remove system-wide installation"
 	@echo "  uninstall-user - Remove user installation"
 	@echo "  clean        - Remove build artifacts"
-	@echo "  check-deps   - Check if dependencies are installed"
 	@echo "  test         - Build and run basic test"
 	@echo "  test-cli     - Run comprehensive CLI test suite"
 	@echo "  test-basic   - Run basic functionality test"
@@ -243,5 +260,9 @@ help:
 	@echo "  version      - Show current version information"
 	@echo "  release      - Complete release workflow (update version + publish)"
 	@echo "  help         - Show this help message"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  ./configure  - Set up build environment and check dependencies"
+	@echo "  ./configure --help - Show configuration options"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug asan ubsan sanitize check-deps test test-cli test-basic test-asan test-ubsan test-sanitize test-all lint lint-fix compile-commands publish publish-dry publish-version update-version version release help
+.PHONY: all install install-user uninstall uninstall-user clean debug asan ubsan sanitize check-deps test test-cli test-basic test-asan test-ubsan test-sanitize test-all lint lint-fix compile-commands publish publish-dry publish-version update-version version release check-configured help
