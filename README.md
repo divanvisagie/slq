@@ -304,6 +304,125 @@ Tests cover:
 - Error handling and edge cases
 - Shell integration scenarios
 
+## Publishing Releases
+
+### Prerequisites
+
+To publish releases, you need:
+- [GitHub CLI (gh)](https://cli.github.com/) installed and authenticated
+- Push access to the repository
+- Clean git working directory (or use `--force`)
+
+```bash
+# Install GitHub CLI
+brew install gh                    # macOS
+sudo apt install gh               # Ubuntu/Debian
+
+# Authenticate with GitHub
+gh auth login
+```
+
+### Version Management
+
+The project version is centrally managed in the Makefile:
+
+```makefile
+# Project configuration
+VERSION = 0.1.0
+```
+
+#### Version Commands
+
+```bash
+# Show current version info
+make version
+
+# Update man page to match Makefile version
+make update-version
+
+# Complete release workflow (update version + tests + publish)
+make release
+```
+
+### Publishing Commands
+
+```bash
+# Quick release with current Makefile version
+make release
+
+# Preview what would be published (dry-run)
+make publish-dry
+
+# Publish current Makefile version
+make publish
+
+# Publish a specific version (overrides Makefile)
+make publish-version VERSION=1.2.3
+
+# Manual script usage with options
+./scripts/publish.sh --help
+./scripts/publish.sh --dry-run
+./scripts/publish.sh --force v1.2.3
+```
+
+### Release Workflow
+
+**Option 1: Quick Release**
+```bash
+# Edit VERSION in Makefile
+vim Makefile  # Change VERSION = 0.1.0 to VERSION = 0.2.0
+
+# Complete release workflow
+make release  # Updates man page, runs tests, publishes
+```
+
+**Option 2: Step-by-step**
+```bash
+# 1. Update version in Makefile
+# 2. Sync man page with Makefile version
+make update-version
+
+# 3. Test everything works
+make test-all
+
+# 4. Publish release
+make publish
+```
+
+### Release Process
+
+The release system automatically:
+
+1. **Uses Makefile VERSION** as the source of truth
+2. **Updates man page** to match Makefile version (`make update-version`)
+3. **Validates environment** (git status, branch, gh CLI)
+4. **Builds release artifacts** (`make clean && make all`)
+5. **Runs tests** to ensure quality (`make test-basic`)
+6. **Creates archive** with binary, man page, README, and LICENSE
+7. **Creates git tag** and pushes to GitHub
+8. **Creates GitHub release** with generated release notes and attached archive
+
+### Archive Contents
+
+Each release includes a platform-specific archive (e.g., `slq-v1.2.3-darwin-arm64.tar.gz`):
+- `slq` - Compiled binary
+- `slq.1` - Manual page
+- `README.md` - Full documentation
+- `LICENSE` - License file
+
+### Version Synchronization
+
+The system keeps versions synchronized between:
+- **Makefile** (`VERSION = x.y.z`) - Source of truth
+- **Man page** (`slq.1`) - Updated by `make update-version`
+- **Git tags** - Created during publishing
+- **GitHub releases** - Created with proper version numbering
+
+To change the version:
+1. Edit the `VERSION` variable in the Makefile
+2. Run `make update-version` to sync the man page
+3. Use `make release` for the complete workflow
+
 ## Documentation
 
 ### Man Page

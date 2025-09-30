@@ -1,3 +1,6 @@
+# Project configuration
+VERSION = 0.1.0
+
 CC = cc
 CFLAGS = -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
 LIBS = $(shell pkg-config --libs jansson libcurl)
@@ -169,9 +172,49 @@ compile-commands:
 	@$(MAKE) clean
 	@bear -- $(MAKE)
 
+# Publish release to GitHub
+publish:
+	@./scripts/publish.sh $(VERSION)
+
+# Publish with dry-run (preview mode)
+publish-dry:
+	@./scripts/publish.sh --dry-run --force $(VERSION)
+
+# Publish specific version
+publish-version:
+	@echo "Usage: make publish-version VERSION=1.2.3"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Example: make publish-version VERSION=1.2.3"; \
+		exit 1; \
+	fi
+	@./scripts/publish.sh $(VERSION)
+
+# Update man page version to match Makefile VERSION
+update-version:
+	@echo "Updating man page version to $(VERSION)..."
+	@sed -i.bak 's/slq [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/slq $(VERSION)/' slq.1
+	@rm -f slq.1.bak
+	@echo "Updated slq.1 with version $(VERSION)"
+
+# Show current version
+version:
+	@echo "Current version: $(VERSION)"
+	@echo "Man page version: $$(grep -o 'slq [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' slq.1 | cut -d' ' -f2 || echo 'not found')"
+
+# Complete release workflow: update version and publish
+release:
+	@echo "Creating release for version $(VERSION)..."
+	@$(MAKE) update-version
+	@echo "Running tests before release..."
+	@$(MAKE) test-basic
+	@echo "Publishing release..."
+	@$(MAKE) publish
+
 # Show help
 help:
 	@echo "Available targets:"
+	@echo "  Current version: $(VERSION)"
+	@echo ""
 	@echo "  all          - Build the project (default)"
 	@echo "  debug        - Build with debug symbols"
 	@echo "  asan         - Build with AddressSanitizer"
@@ -193,6 +236,12 @@ help:
 	@echo "  lint         - Run clang-tidy static analysis"
 	@echo "  lint-fix     - Run clang-tidy with automatic fixes"
 	@echo "  compile-commands - Generate compile_commands.json for editor support"
+	@echo "  publish      - Create GitHub release with artifacts"
+	@echo "  publish-dry  - Preview GitHub release (dry-run mode)"
+	@echo "  publish-version VERSION=x.y.z - Publish specific version"
+	@echo "  update-version - Update man page version to match Makefile"
+	@echo "  version      - Show current version information"
+	@echo "  release      - Complete release workflow (update version + publish)"
 	@echo "  help         - Show this help message"
 
-.PHONY: all install install-user uninstall uninstall-user clean debug asan ubsan sanitize check-deps test test-cli test-basic test-asan test-ubsan test-sanitize test-all lint lint-fix compile-commands help
+.PHONY: all install install-user uninstall uninstall-user clean debug asan ubsan sanitize check-deps test test-cli test-basic test-asan test-ubsan test-sanitize test-all lint lint-fix compile-commands publish publish-dry publish-version update-version version release help
