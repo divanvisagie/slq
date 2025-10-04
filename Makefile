@@ -5,7 +5,7 @@ VERSION = 0.2.0
 -include config.mk
 
 # Default values (overridden by config.mk if present)
-CC ?= cc
+CC ?= clang
 PREFIX ?= /usr/local
 CFLAGS ?= -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags jansson libcurl)
 LIBS ?= $(shell pkg-config --libs jansson libcurl)
