@@ -1,6 +1,6 @@
 [package]
 name = "slq"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 description = "Search stockholms lokaltrafik for stations and times in the command line"
 authors = ["Divan Visagie <me@divanv.com>"]
