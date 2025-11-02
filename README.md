@@ -8,21 +8,12 @@ A Rust implementation for performance, safety, and modern tooling.
 
 ## Installation
 
-### Quick Start
-
-**Install slq (One Command):**
-```bash
-make install-user
-```
-
-This will build the project and install `slq` to `~/.local/bin`.
-
 **System-wide installation:**
 ```bash
-sudo make install
+make install
 ```
 
-This installs `slq` to `/usr/local/bin`.
+This will build the project and install `slq` using `cargo install`.
 
 **Quick Demo:**
 ```bash
@@ -33,22 +24,13 @@ slq search "Central"
 slq departures "T-Centralen"
 
 # Filter by transport type
-slq departures "T-Centralen" --transport-type metro
+slq departures "T-Centralen" --transport-mode metro
 
 # Get help
 slq --help
-man slq
 ```
 
-### Uninstallation
 
-```bash
-# Remove system-wide installation
-sudo make uninstall
-
-# Remove user installation
-make uninstall-user
-```
 
 ## Usage
 
@@ -220,70 +202,25 @@ The project version is centrally managed in the Makefile:
 
 ```makefile
 # Project configuration
-VERSION = 0.2.0
-```
-
-#### Version Commands
-
-```bash
-# Show current version info
-make version
-
-# Update man page to match Makefile version
-make update-version
-
-# Complete release workflow (update version + tests + publish)
-make release
-```
-
-### Publishing Commands
-
-```bash
-# Quick release with current Makefile version
-make release
-
-# Publish current Makefile version
-make publish
-
-# Publish a specific version (overrides Makefile)
-make publish-version VERSION=1.2.3
+VERSION = 0.3.0
 ```
 
 ### Release Workflow
 
-**Option 1: Quick Release**
 ```bash
-# Edit VERSION in Makefile
-vim Makefile  # Change VERSION = 0.2.0 to VERSION = 0.3.0
+# 1. Edit VERSION in Makefile
+vim Makefile  # Change VERSION = 0.3.0 to 0.4.0 for example
 
-# Complete release workflow
-make release  # Updates man page, runs tests, publishes
-```
-
-**Option 2: Step-by-step**
-```bash
-# 1. Update version in Makefile
-# 2. Sync man page with Makefile version
-make update-version
-
-# 3. Test everything works
+# 2. Run tests
 make test
 
-# 4. Publish release
-make publish
+# 3. Publish the release (runs tests again, then publishes)
+make release
 ```
 
 ## Documentation
 
-### Man Page
 
-After installation, comprehensive documentation is available via the man page:
-
-```bash
-man slq
-```
-
-The man page includes detailed information about all commands, options, examples, and usage patterns.
 
 ## License
 
