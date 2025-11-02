@@ -116,8 +116,21 @@ fn main() -> Result<()> {
             count,
             transport_mode,
         } => {
-            let dest = get_departures(station_name, line, count, transport_mode)?;
-            dest.iter().for_each(|d| print_departure(d));
+            let (site_id, site_name) = if station_name.parse::<u64>().is_ok() {
+                (station_name.clone(), station_name.clone())
+            } else {
+                let sites = search_for_sites(station_name.as_str())?;
+                if let Some(site) = sites.get(0) {
+                    (site.id.to_string(), site.name.clone())
+                } else {
+                    println!("Error: Station '{}' not found.", station_name);
+                    return Ok(());
+                }
+            };
+
+            println!("Departures from {}:", site_name);
+            let departures = get_departures(&site_id, line, count, transport_mode)?;
+            departures.iter().for_each(|d| print_departure(d));
         }
     };
     Ok(())
