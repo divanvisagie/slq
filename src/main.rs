@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use time::{Duration, OffsetDateTime, PrimitiveDateTime, UtcOffset, format_description};
 
-use crate::client::{Departure, get_departures};
+use crate::client::{Departure, TransportMode, get_departures};
 
 mod client;
 
@@ -36,7 +36,7 @@ enum Commands {
 
         /// Filter by transport type, valid types are: metro, bus, train or tram
         #[arg(short, long)]
-        transport_type: Option<String>,
+        transport_mode: Option<TransportMode>,
     },
 }
 
@@ -85,13 +85,17 @@ fn print_departure(departure: &Departure) {
         .expect("Could not parse date returned from API");
     let time = format_time(&pd);
     println!(
-        "{}\t{}\t{}\t{}",
-        wait, time, departure.line.designation, departure.destination
+        "{}\t{}\t{}\t{}\t{:?}",
+        wait,
+        time,
+        departure.line.designation,
+        departure.destination,
+        departure.line.transport_mode
     );
 }
 
 fn format_time(date: &PrimitiveDateTime) -> String {
-    format!("{}:{}", date.hour(), date.minute())
+    format!("{:02}:{:02}", date.hour(), date.minute())
 }
 
 fn main() -> Result<()> {
@@ -105,9 +109,9 @@ fn main() -> Result<()> {
             station_name,
             line,
             count,
-            transport_type,
+            transport_mode,
         } => {
-            let dest = get_departures(station_name, line, count)?;
+            let dest = get_departures(station_name, line, count, transport_mode)?;
             dest.iter().for_each(|d| print_departure(d));
         }
     };

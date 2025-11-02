@@ -1,14 +1,19 @@
 use anyhow::Result;
+use clap::ValueEnum;
 use reqwest::blocking::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-// struct Departure {
-//     wait: u32,
-//     time: String,
-//     line: String,
-//     destination: String,
-//     transport_type: String,
-// }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum TransportMode {
+    Bus,
+    Tram,
+    Metro,
+    Train,
+    Ferry,
+    Ship,
+    Taxi,
+}
 
 #[derive(Deserialize, Clone)]
 struct StopArea {
@@ -21,7 +26,7 @@ struct StopArea {
 pub struct Line {
     id: u32,
     pub designation: String,
-    transport_mode: String,
+    pub transport_mode: TransportMode,
 }
 
 /// Represents The response that comes back for the destination
@@ -46,6 +51,7 @@ pub fn get_departures(
     station_name_or_id: &str,
     line: &Option<String>,
     count: &Option<usize>,
+    transport_mode: &Option<TransportMode>,
 ) -> Result<Vec<Departure>> {
     let url = format!(
         "https://transport.integration.sl.se/v1/sites/{}/departures",
@@ -67,6 +73,15 @@ pub fn get_departures(
         None => departures,
     };
 
+    let departures = match transport_mode {
+        Some(l) => departures
+            .iter()
+            .filter(|d| d.line.transport_mode == *l)
+            .cloned()
+            .collect(),
+        None => departures,
+    };
+
     match count {
         Some(limit) => {
             let limited = departures.iter().cloned().take(*limit).collect();
@@ -82,18 +97,18 @@ mod tests {
 
     #[test]
     fn get_departures_should_obey_line_limit() {
-        let departures = get_departures("9600".to_string(), None, Some(2));
+        let departures = get_departures("9600", &None, &Some(2), &None);
         let actual = departures.unwrap().len();
         assert_eq!(2, actual);
 
-        let departures = get_departures("9600".to_string(), None, Some(1));
+        let departures = get_departures("9600", &None, &Some(1), &None);
         let actual = departures.unwrap().len();
         assert_eq!(1, actual);
     }
 
     #[test]
     fn get_departures_should_filter_lines() -> Result<()> {
-        let departures = get_departures("9600".to_string(), Some("28".to_string()), Some(1))?;
+        let departures = get_departures("9600", &Some("28".to_string()), &Some(1), &None)?;
         if !departures
             .iter()
             .all(|d| d.line.designation.starts_with("28"))
