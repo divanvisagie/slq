@@ -196,30 +196,6 @@ Publishing requires:
 - Push access to the repository
 - Clean git working directory
 
-### Version Management
-
-The project version is centrally managed in the Makefile:
-
-```makefile
-# Project configuration
-VERSION = 0.3.0
-```
-
-### Release Workflow
-
-```bash
-# 1. Edit VERSION in Makefile
-vim Makefile  # Change VERSION = 0.3.0 to 0.4.0 for example
-
-# 2. Run tests
-make test
-
-# 3. Publish the release (runs tests again, then publishes)
-make release
-```
-
-## Documentation
-
 
 
 ## License

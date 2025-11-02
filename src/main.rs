@@ -85,12 +85,12 @@ fn print_departure(departure: &Departure) {
         .expect("Could not parse date returned from API");
     let time = format_time(&pd);
     println!(
-        "{}\t{}\t{}\t{}\t{:?}",
+        "{}\t{}\t{}\t{:?}\t{}",
         wait,
         time,
         departure.line.designation,
-        departure.destination,
-        departure.line.transport_mode
+        departure.line.transport_mode,
+        departure.destination
     );
 }
 
