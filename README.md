@@ -75,14 +75,13 @@ Now   13:35  13     Ropsten              Tunnelbanans röda linje
 ```bash
 # Filter by line number (includes variants):
 slq departures "T-Centralen" --line 14
-slq departures "Station" --line 28    # Shows both 28 and 28s
-slq departures "Station" --line 28s   # Shows only 28s
+slq departures "T-Centralen" --line 17    # Shows departures for line 17 (Green Line)
 
 # Filter by transport type:
-slq departures "T-Centralen" --transport-type metro    # Tunnelbanan (subway)
-slq departures "Odenplan" --transport-type bus         # Buses (Blåbuss, Närtrafiken)
-slq departures "Odenplan" --transport-type train       # Trains (Pendeltåg, Roslagsbanan)
-slq departures "T-Centralen" --transport-type tram     # Trams (Spårväg City)
+slq departures "T-Centralen" --transport-mode metro    # Tunnelbanan (subway)
+slq departures "Odenplan" --transport-mode bus         # Buses (Blåbuss, Närtrafiken)
+slq departures "Odenplan" --transport-mode train       # Trains (Pendeltåg, Roslagsbanan)
+slq departures "T-Centralen" --transport-mode tram     # Trams (Spårväg City)
 
 # Filter by destination:
 slq departures "T-Centralen" --destination "Akalla"    # Only departures going to Akalla
@@ -94,7 +93,7 @@ slq departures "T-Centralen" --count 20               # Show 20 departures inste
 slq departures "T-Centralen" --count 5                # Show only 5 departures
 
 # Combine filters:
-slq departures "T-Centralen" --line 14 --transport-type metro --destination "Fruängen" --count 15
+slq departures "T--Centralen" --line 14 --transport-mode metro --destination "Fruängen" --count 15
 ```
 
 ## Shell Integration
@@ -109,10 +108,10 @@ slq search "T-Centralen" | head -1 | cut -f2
 slq search "central" | grep -i central
 
 # Get only metro departures from a station
-slq departures "T-Centralen" --transport-type metro
+slq departures "T-Centralen" --transport-mode metro
 
-# Check specific line departures
-slq departures "Galoppfältet" --line 28
+# Check departures for a specific line
+slq departures "T-Centralen" --line 17
 ```
 
 ## APIs Used
