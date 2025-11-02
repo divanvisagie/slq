@@ -16,15 +16,7 @@ pub enum TransportMode {
 }
 
 #[derive(Deserialize, Clone)]
-struct StopArea {
-    id: u32,
-    name: String,
-    r#type: String,
-}
-
-#[derive(Deserialize, Clone)]
 pub struct Line {
-    id: u32,
     pub designation: String,
     pub transport_mode: TransportMode,
 }
@@ -33,11 +25,8 @@ pub struct Line {
 /// for a single trip
 #[derive(Deserialize, Clone)]
 pub struct Departure {
-    /// Where the trip is going
     pub destination: String,
-    pub state: String,
     pub expected: String,
-    pub stop_area: StopArea,
     pub line: Line,
 }
 
