@@ -34,7 +34,7 @@ enum Commands {
         #[arg(short, long)]
         count: Option<usize>,
 
-        /// Filter by transport type, valid types are: metro, bus, train or tram
+        /// Filter by transport type
         #[arg(short, long)]
         transport_mode: Option<TransportMode>,
     },
