@@ -2,8 +2,6 @@
 
 A CLI tool for querying [Storstockholms Lokaltrafik (SL)](https://sl.se) information.
 
-A Rust implementation for performance, safety, and modern tooling.
-
 ```
 |[][SL][][] \
  oo---=--oo |
@@ -12,110 +10,59 @@ A Rust implementation for performance, safety, and modern tooling.
 ## Installation
 
 **System-wide installation:**
-```bash
+```sh
 make install
 ```
 
 This will build the project and install `slq` using `cargo install`.
 
 **Quick Demo:**
-```bash
+```sh
 # Search for stations
-slq search "Central"
+$ slq search "taby centrum"
+Täby centrum    9669
 
-# Get departures from T-Centralen  
-slq departures "T-Centralen"
-
-# Filter by transport type
-slq departures "T-Centralen" --transport-mode metro
-
-# Get help
-slq --help
+$ slq departures "T-Centralen" -t metro -l 14
+Departures from T-Centralen:
+1m      19:23   14      Metro   Mörby centrum
+7m      19:29   14      Metro   Fruängen
+11m     19:32   14      Metro   Mörby centrum
+11m     19:33   14      Metro   Mörby centrum
+17m     19:39   14      Metro   Fruängen
+27m     19:49   14      Metro   Fruängen
 ```
-
-
 
 ## Usage
 
 ### Search for stations
 
-Find station names and IDs (output is tab-delimited for easy shell scripting):
+Search for stations by name. Returns tab-delimited output with station names and IDs, suitable for shell scripting
 
-```bash
-slq search "Central"
-```
+Usage: slq search <STATION_NAME>
 
-Output:
-```
-Centralen	1002
-T-Centralen	9001
-Stockholms central	9000
-...
-```
+Arguments:
+  <STATION_NAME>  Station name
+
+Options:
+  -h, --help  Print help
 
 ### Check departures
+Usage: slq departures [OPTIONS] <STATION_NAME>
 
-Show upcoming departures from a station with real-time information:
+Arguments:
+  <STATION_NAME>  Station name or identifier
 
-```bash
-slq departures "T-Centralen"
-# or by station ID:
-slq departures "9001"
-```
-
-**Output format:**
-```
-Departures from T-Centralen:
-Wait  Time   Line   Destination          Type
-----------------------------------------------------------------------
-Now   13:35  13     Ropsten              Tunnelbanans röda linje
-1m    13:36  19     Odenplan             Tunnelbanans gröna linje
-2m    13:37  14     Fruängen             Tunnelbanans röda linje
-```
-
-**Filtering options:**
-
-```bash
-# Filter by line number (includes variants):
-slq departures "T-Centralen" --line 14
-slq departures "T-Centralen" --line 17    # Shows departures for line 17 (Green Line)
-
-# Filter by transport type:
-slq departures "T-Centralen" --transport-mode metro    # Tunnelbanan (subway)
-slq departures "Odenplan" --transport-mode bus         # Buses (Blåbuss, Närtrafiken)
-slq departures "Odenplan" --transport-mode train       # Trains (Pendeltåg, Roslagsbanan)
-slq departures "T-Centralen" --transport-mode tram     # Trams (Spårväg City)
-
-# Filter by destination:
-slq departures "T-Centralen" --destination "Akalla"    # Only departures going to Akalla
-slq departures "T-Centralen" --destination "9001"      # Filter by destination ID
-slq departures "Odenplan" --destination "Airport"      # Partial name matching
-
-# Control number of departures shown:
-slq departures "T-Centralen" --count 20               # Show 20 departures instead of default 10
-slq departures "T-Centralen" --count 5                # Show only 5 departures
-
-# Combine filters:
-slq departures "T--Centralen" --line 14 --transport-mode metro --destination "Fruängen" --count 15
-```
-
-## Shell Integration
-
-The search command outputs tab-delimited data perfect for shell pipelines:
-
-```bash
-# Get the ID for T-Centralen
-slq search "T-Centralen" | head -1 | cut -f2
-
-# Find all stations with "central" in the name
-slq search "central" | grep -i central
-
-# Get only metro departures from a station
-slq departures "T-Centralen" --transport-mode metro
-
-# Check departures for a specific line
-slq departures "T-Centralen" --line 17
-```
+Options:
+  -l, --line <LINE>
+          Filter by line number. Base line numbers (e.g., "28") will include variants like "28s"). Specific variants can be filtered with exact matches, sho if you search for "28s" you will only get that result
+  -c, --count <COUNT>
+          Maximum number of departures to show
+  -d, --destination <DESTINATION>
+          Filter results by their destination
+  -t, --transport-mode <TRANSPORT_MODE>
+          Filter by transport type [possible values: bus, tram, metro, train, ferry, ship, taxi]
+  -h, --help
+          Print help
 
 ## APIs Used
 
@@ -124,80 +71,6 @@ slq departures "T-Centralen" --line 17
   - `https://transport.integration.sl.se/v1/sites/{id}/departures` - Real-time departures
 
 No API key required for these endpoints.
-
-## Dependencies
-
-All dependencies are managed by Cargo, the Rust package manager.
-
-## Development
-
-### Building and Testing
-
-```bash
-# Show all available make targets
-make help
-
-# Build project
-make             # Build release version
-make all         # Build release version
-make debug       # Build with debug symbols
-
-# Testing
-make test        # Run the test suite
-
-# Maintenance
-make clean       # Remove build artifacts
-```
-
-### Editor Setup
-
-For the best development experience, use `rust-analyzer` with your editor of choice. It provides excellent IntelliSense, error checking, and "go to definition" by reading the `Cargo.toml` file.
-
-- **VS Code**: Install the `rust-analyzer` extension.
-- **Vim/Neovim**: Use a plugin manager to install `rust-analyzer`.
-- **Emacs**: Use `lsp-mode` with `rust-analyzer`.
-
-### Static Analysis
-
-Use `clippy`, the standard Rust linter, for code quality checks:
-
-```bash
-# Run static analysis
-cargo clippy
-
-# Run static analysis with automatic fixes (use with caution)
-cargo clippy --fix
-```
-
-### Implementation Details
-
-This Rust implementation provides:
-
-- **Performance**: Fast execution thanks to Rust's zero-cost abstractions.
-- **Memory Safety**: Guaranteed memory safety without a garbage collector.
-- **Modern Tooling**: A modern development experience with Cargo, rust-analyzer, and clippy.
-- **Robust error handling**: Graceful handling of network and parsing errors.
-
-### Testing
-
-The project includes a test suite managed by Cargo.
-
-```bash
-# Run tests
-make test
-# or
-cargo test
-```
-
-## Publishing Releases
-
-### Prerequisites
-
-Publishing requires:
-- [GitHub CLI (gh)](https://cli.github.com/) installed and authenticated
-- Push access to the repository
-- Clean git working directory
-
 
 
 ## License
