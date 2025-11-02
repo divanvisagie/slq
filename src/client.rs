@@ -48,6 +48,7 @@ pub fn get_departures(
     line: &Option<String>,
     count: &Option<usize>,
     transport_mode: &Option<TransportMode>,
+    destination: &Option<String>,
 ) -> Result<Vec<Departure>> {
     let url = format!(
         "https://transport.integration.sl.se/v1/sites/{}/departures",
@@ -75,6 +76,22 @@ pub fn get_departures(
             .filter(|d| d.line.transport_mode == *l)
             .cloned()
             .collect(),
+        None => departures,
+    };
+
+    let departures = match destination {
+        Some(dest) => {
+            let query = deunicode(dest).to_lowercase();
+            departures
+                .iter()
+                .filter(|d| {
+                    deunicode(d.destination.as_str())
+                        .to_lowercase()
+                        .contains(&query)
+                })
+                .cloned()
+                .collect()
+        }
         None => departures,
     };
 

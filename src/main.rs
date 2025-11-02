@@ -34,6 +34,10 @@ enum Commands {
         #[arg(short, long)]
         count: Option<usize>,
 
+        /// Filter results by their destination
+        #[arg(short, long)]
+        destination: Option<String>,
+
         /// Filter by transport type
         #[arg(short, long)]
         transport_mode: Option<TransportMode>,
@@ -115,6 +119,7 @@ fn main() -> Result<()> {
             line,
             count,
             transport_mode,
+            destination,
         } => {
             let (site_id, site_name) = if station_name.parse::<u64>().is_ok() {
                 (station_name.clone(), station_name.clone())
@@ -129,7 +134,7 @@ fn main() -> Result<()> {
             };
 
             println!("Departures from {}:", site_name);
-            let departures = get_departures(&site_id, line, count, transport_mode)?;
+            let departures = get_departures(&site_id, line, count, transport_mode, destination)?;
             departures.iter().for_each(|d| print_departure(d));
         }
     };
