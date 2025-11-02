@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::ValueEnum;
+use deunicode::deunicode;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +14,12 @@ pub enum TransportMode {
     Ferry,
     Ship,
     Taxi,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct Site {
+    pub id: u32,
+    pub name: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -80,6 +87,27 @@ pub fn get_departures(
     }
 }
 
+pub fn get_sites() -> Result<Vec<Site>> {
+    let url = "https://transport.integration.sl.se/v1/sites";
+    let client = Client::new();
+
+    let res = client.get(url).send()?;
+    let api_response = res.json::<Vec<Site>>()?;
+
+    Ok(api_response)
+}
+
+pub fn search_for_sites(query: &str) -> Result<Vec<Site>> {
+    let sites = get_sites()?;
+    let query = deunicode(query).to_lowercase(); //Ignore accents on ö å ä
+    let sites = sites
+        .iter()
+        .filter(|s| deunicode(s.name.as_str()).to_lowercase().contains(&query))
+        .cloned()
+        .collect();
+    Ok(sites)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -104,6 +132,14 @@ mod tests {
         {
             assert!(false, "Should only contain results for line 28");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_sites() -> Result<()> {
+        let sites = get_sites()?;
+        let count = sites.iter().count();
+        assert_ne!(0, count);
         Ok(())
     }
 }

@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use time::{Duration, OffsetDateTime, PrimitiveDateTime, UtcOffset, format_description};
 
-use crate::client::{Departure, TransportMode, get_departures};
+use crate::client::{Departure, Site, TransportMode, get_departures, search_for_sites};
 
 mod client;
 
@@ -94,6 +94,10 @@ fn print_departure(departure: &Departure) {
     );
 }
 
+fn print_site(site: &Site) {
+    println!("{}\t{}", site.name, site.id)
+}
+
 fn format_time(date: &PrimitiveDateTime) -> String {
     format!("{:02}:{:02}", date.hour(), date.minute())
 }
@@ -103,7 +107,8 @@ fn main() -> Result<()> {
 
     match &args.command {
         Commands::Search { station_name } => {
-            println!("Searching: {}", station_name);
+            let sites = search_for_sites(station_name.as_str())?;
+            sites.iter().for_each(|s| print_site(s));
         }
         Commands::Departures {
             station_name,
