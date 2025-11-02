@@ -4,7 +4,10 @@ A CLI tool for querying [Storstockholms Lokaltrafik (SL)](https://sl.se) informa
 
 A Rust implementation for performance, safety, and modern tooling.
 
-![Logo](docs/slq-small.png)
+```
+|[][SL][][] \
+ oo---=--oo |
+```
 
 ## Installation
 
