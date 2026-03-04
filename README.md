@@ -64,6 +64,42 @@ Options:
   - `-h`, `--help`
           Print help
 
+### Find closest stations by coordinate
+Usage: `slq closest [OPTIONS] <LAT> <LON>`
+
+Arguments:
+  <LAT>  Latitude in decimal degrees
+  <LON>  Longitude in decimal degrees
+
+Options:
+  - `-l`, `--limit <LIMIT>`
+          Maximum number of stations to return (default: `3`)
+  - `-t`, `--transport-mode <TRANSPORT_MODE>`
+          Filter results to stations with departures for a transport type (alias: `--type`). Possible values: `bus, tram, metro, train, ferry, ship, taxi`
+  - `-h`, `--help`
+          Print help
+
+Example:
+```sh
+slq closest 59.3313 18.0604
+slq closest 59.3313 18.0604 --transport-mode metro --limit 2
+slq closest 59.3313 18.0604 --type metro --limit 2
+```
+
+Output notes:
+- Unfiltered `closest` output includes inferred transport type(s) from live departures.
+- Filtered `closest --transport-mode/--type` keeps the compact output format (`distance`, `name`, `id`).
+
+## Build and Data Snapshot
+
+`make` now refreshes the bundled station snapshot from the SL sites API before building.
+
+```sh
+make                 # refresh data/sites.json, then build
+make update-sites    # refresh snapshot only
+make SKIP_SITE_REFRESH=1  # build without refreshing snapshot
+```
+
 ## APIs Used
 
 - **SL Transport API**: For station search and departure information
@@ -76,5 +112,3 @@ No API key required for these endpoints.
 ## License
 
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](file:LICENSE) file for details.
-
-

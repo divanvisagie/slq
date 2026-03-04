@@ -1,25 +1,18 @@
-use anyhow::Result;
-use clap::ValueEnum;
+use anyhow::{Context, Result};
 use deunicode::deunicode;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
-#[serde(rename_all = "UPPERCASE")]
-pub enum TransportMode {
-    Bus,
-    Tram,
-    Metro,
-    Train,
-    Ferry,
-    Ship,
-    Taxi,
-}
+use crate::types::TransportMode;
+
+const BUNDLED_SITES_JSON: &str = include_str!("../data/sites.json");
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Site {
     pub id: u32,
     pub name: String,
+    pub lat: Option<f64>,
+    pub lon: Option<f64>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -105,6 +98,12 @@ pub fn get_departures(
 }
 
 pub fn get_sites() -> Result<Vec<Site>> {
+    let snapshot_sites: Vec<Site> = serde_json::from_str(BUNDLED_SITES_JSON)
+        .context("failed to parse bundled station snapshot (data/sites.json)")?;
+    if !snapshot_sites.is_empty() {
+        return Ok(snapshot_sites);
+    }
+
     let url = "https://transport.integration.sl.se/v1/sites";
     let client = Client::new();
 
@@ -112,6 +111,30 @@ pub fn get_sites() -> Result<Vec<Site>> {
     let api_response = res.json::<Vec<Site>>()?;
 
     Ok(api_response)
+}
+
+pub fn site_has_transport_mode(site_id: u32, transport_mode: TransportMode) -> Result<bool> {
+    let site_id = site_id.to_string();
+    let count = Some(1usize);
+    let mode = Some(transport_mode);
+    let departures = get_departures(&site_id, &None, &count, &mode, &None)?;
+    Ok(!departures.is_empty())
+}
+
+pub fn get_site_transport_modes(site_id: u32, sample_size: usize) -> Result<Vec<TransportMode>> {
+    let site_id = site_id.to_string();
+    let count = Some(sample_size);
+    let departures = get_departures(&site_id, &None, &count, &None, &None)?;
+
+    let mut modes: Vec<TransportMode> = Vec::new();
+    for departure in departures {
+        let mode = departure.line.transport_mode;
+        if !modes.contains(&mode) {
+            modes.push(mode);
+        }
+    }
+
+    Ok(modes)
 }
 
 pub fn search_for_sites(query: &str) -> Result<Vec<Site>> {
@@ -131,18 +154,18 @@ mod tests {
 
     #[test]
     fn get_departures_should_obey_line_limit() {
-        let departures = get_departures("9600", &None, &Some(2), &None);
+        let departures = get_departures("9600", &None, &Some(2), &None, &None);
         let actual = departures.unwrap().len();
         assert_eq!(2, actual);
 
-        let departures = get_departures("9600", &None, &Some(1), &None);
+        let departures = get_departures("9600", &None, &Some(1), &None, &None);
         let actual = departures.unwrap().len();
         assert_eq!(1, actual);
     }
 
     #[test]
     fn get_departures_should_filter_lines() -> Result<()> {
-        let departures = get_departures("9600", &Some("28".to_string()), &Some(1), &None)?;
+        let departures = get_departures("9600", &Some("28".to_string()), &Some(1), &None, &None)?;
         if !departures
             .iter()
             .all(|d| d.line.designation.starts_with("28"))
