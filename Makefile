@@ -1,5 +1,5 @@
 # Project configuration
-VERSION = 0.3.0
+VERSION = 0.5.0
 PREFIX ?= /usr/local
 TARGET = slq
 CARGO_TARGET_DIR ?= target
